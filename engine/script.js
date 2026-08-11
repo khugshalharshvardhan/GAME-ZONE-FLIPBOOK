@@ -523,7 +523,7 @@ function updateLbdOverlay() {
     lbdStage.classList.add("visible");
     lbdStage.setAttribute("aria-hidden", "false");
   } else {
-    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert");
+    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert", "peek");
     lbdStage.setAttribute("aria-hidden", "true");
     lbdFullscreen = false;                  // next visit starts page-sized again
     clearTimeout(lbdReadyTimer);
@@ -2054,8 +2054,16 @@ document.body.appendChild(flipHint);
 // until the reader turns the page; any interaction resets it.
 const HINT_AFTER_DONE_MS = 0;     // 0 = the hand appears WITH the arrow, the instant
                                   // the page's video ends (no waiting period)
-const PEEK_REPEAT_MS = 3600;      // the ghost page-flip is a finite animation, so
-                                  // replay it on this cadence while the nudge is up
+const HINT_SWIPE_MS  = 1500;      // the hand's swipe loop — keep in sync with the
+                                  // flipHintSwipe animation duration in styles.css
+const PEEK_REPEAT_MS = HINT_SWIPE_MS + 20;  // one nudge beat: the page-lift and the hand
+                                  // are BOTH (re)started at the top of every beat so they
+                                  // move as one gesture. They used to run on separate
+                                  // clocks — a 1.5s CSS loop against a 3.6s replay — which
+                                  // put them permanently out of phase after the first pass.
+                                  // The 20ms of slack lands while both sit at rest (the
+                                  // swipe's 0% and 100% keyframes are the same transform),
+                                  // so the restart is never visible.
 const HINT_RESUME_MS = 2500;      // if a tap did NOT turn the page, bring the nudge
                                   // back after this long (not instantly, or it flickers)
 const NUDGE_GAP_MS  = 9000;    // retry gap while the nudge is not allowed to show yet
@@ -2107,6 +2115,16 @@ function showFlipHint() {
 function hideFlipHint() {
   flipHint.classList.remove("show");
 }
+/* Restart an element's CSS animation from 0% *now*. Used to re-phase the hand (and
+   an activity page's lift) at the top of every nudge beat so they stay one gesture
+   instead of slowly drifting apart on independent clocks. Both animations begin and
+   end on the same transform, so a restart at the beat boundary is invisible. */
+function restartCssAnim(el) {
+  if (!el) return;
+  el.style.animation = "none";
+  void el.offsetWidth;                         // reflow → next frame starts at 0%
+  el.style.animation = "";
+}
 
 /* ---- GHOST PAGE-FLIP -------------------------------------------------------
    Lift the current page about halfway toward the next one, then let it fall back
@@ -2115,6 +2133,9 @@ function hideFlipHint() {
 function cancelPeek() {
   peekTimers.forEach(clearTimeout);
   peekTimers = [];
+  // Always drop the activity page's lift, even if `peeking` was already cleared —
+  // otherwise the game overlay would be left mid-tilt.
+  if (lbdStage) lbdStage.classList.remove("peek");
   if (!peeking) return;
   peeking = false;
   const leaf = leaves[flipped];
@@ -2129,7 +2150,22 @@ function cancelPeek() {
   updateZ();
 }
 function peekFlip() {
-  if (peeking || !canShowHint()) return;
+  if (!canShowHint()) return;
+  // ACTIVITY PAGE: the live game overlay is a fixed, opaque, body-level layer at z600,
+  // so it covers the leaf completely — peeling the sheet underneath it would happen
+  // entirely out of sight, which is why the lift used to be skipped here and those
+  // pages got the hand on its own. On a finished activity the game screen IS the page,
+  // so lift THAT instead: same rhythm, same read, and now every page nudges the same
+  // way. (canShowHint() is already false while the game is still being played.)
+  const curPage = pages[flipped];
+  if (curPage && curPage.type === "lbd" &&
+      lbdStage && lbdStage.classList.contains("visible")) {
+    lbdStage.classList.add("peek");
+    restartCssAnim(lbdStage);                  // re-phase with the hand every beat
+    peeking = true;
+    return;
+  }
+  if (peeking) return;
   const leaf = leaves[flipped];
   if (!leaf) return;
   peeking = true;
@@ -2152,22 +2188,27 @@ function peekFlip() {
       }
     });
     leaf._peekTl = tl;
-    tl.to(proxy, { t: 0.12, duration: 0.7, ease: "power2.inOut" })
-      .to(proxy, { t: 0,    duration: 0.6, ease: "power2.inOut", delay: 0.15 });
+    // Timed to the hand's own swipe keyframes (0% → 45% push → 72% hold → 100% back)
+    // so the corner lifts exactly as the hand pushes, holds with it, and lays back
+    // down as the hand returns: 0.675s + 0.405s + 0.42s = the swipe's 1.5s.
+    tl.to(proxy, { t: 0.12, duration: 0.675, ease: "power2.inOut" })
+      .to(proxy, { t: 0,    duration: 0.42,  ease: "power2.inOut", delay: 0.405 });
     return;
   }
-  leaf.style.transition = "transform 720ms cubic-bezier(0.33, 0, 0.2, 1)";
+  // Same beat as the GSAP path and the hand: lift by 675ms, hold to 1080ms, flat by
+  // 1500ms — inside PEEK_REPEAT_MS, so the next beat is never skipped for being busy.
+  leaf.style.transition = "transform 675ms cubic-bezier(0.33, 0, 0.2, 1)";
   void leaf.offsetWidth;                                 // commit so the lift animates from flat
   leaf.style.transform = "rotateY(-52deg)";              // turn toward the next page (~halfway)
   if (curl) curl.style.opacity = "0.85";                 // page-curl shading during the lift
   peekTimers.push(setTimeout(function () {               // ...then ease it back down
     leaf.style.transform = "rotateY(0deg)";
     if (curl) curl.style.opacity = "";
-  }, 760));
+  }, 1080));
   peekTimers.push(setTimeout(function () {               // clean up once settled
     leaf.style.transition = ""; leaf.style.transform = ""; leaf.style.zIndex = "";
     peeking = false; updateZ();
-  }, 760 + 760));
+  }, 1500));
 }
 
 /* Start the nudge and KEEP IT RUNNING until the reader taps: the hand swipes on the
@@ -2177,13 +2218,15 @@ function peekFlip() {
 function triggerHint() {
   if (!canShowHint()) { idleHintTimer = setTimeout(triggerHint, NUDGE_GAP_MS); return; }
   showFlipHint();
-  // The ghost page-lift is skipped on an ACTIVITY page: the game's finished screen
-  // is sitting on top of that leaf, so peeling it would read as the book turning
-  // the page by itself. The hand + blinking arrow carry the cue there instead.
-  if (!(pages[flipped] && pages[flipped].type === "lbd")) peekFlip();
+  // ONE GESTURE: the hand and the page-lift are (re)started in the SAME tick at the top
+  // of every beat, so they always move together. The lift now runs on EVERY page — an
+  // activity page lifts its game overlay instead of the hidden leaf (see peekFlip), so
+  // no page is left with only the hand.
+  restartCssAnim(flipHint);
+  peekFlip();
   if (cornerNext) cornerNext.classList.add("blink");
-  // Only the ghost peel needs re-triggering; it is a one-shot tween, unlike the
-  // hand and arrow which loop on their own.
+  // The whole beat is re-triggered on PEEK_REPEAT_MS: the peel is a one-shot tween and
+  // the hand is re-phased against it, so both restart as a pair.
   clearTimeout(nudgeHideTimer);
   nudgeHideTimer = setTimeout(triggerHint, PEEK_REPEAT_MS);
 }

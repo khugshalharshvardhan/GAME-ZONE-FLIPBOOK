@@ -1030,6 +1030,29 @@
      page — not just tap the arrows. Cleared on leaving or reloading the activity. */
   .lbd-stage.inert { pointer-events: none; }
 
+  /* NUDGE on a finished ACTIVITY page. The leaf is completely hidden behind this
+     overlay, so the ghost corner-peel would be invisible there — the game screen IS
+     the page, so it takes the lift itself. Hinged on the left (the spine) so the outer
+     edge rises exactly like a page corner starting to turn, and deliberately on the
+     SAME 1.5s clock and the SAME keyframe stops as .flip-hint's flipHintSwipe: the
+     page rises as the hand pushes (45%), holds with it (72%) and settles as the hand
+     returns (100%). script.js restarts both in one tick each beat, so they stay one
+     gesture rather than drifting apart. */
+  .lbd-stage.peek {
+    transform-origin: left center;
+    will-change: transform;
+    animation: lbdPagePeek 1.5s cubic-bezier(0.4,0,0.2,1) infinite;
+  }
+  @keyframes lbdPagePeek {
+    0%   { transform: perspective(1800px) rotateY(0deg)    translateX(0);     }
+    45%  { transform: perspective(1800px) rotateY(-12deg)  translateX(-6px);  }
+    72%  { transform: perspective(1800px) rotateY(-12deg)  translateX(-6px);  }
+    100% { transform: perspective(1800px) rotateY(0deg)    translateX(0);     }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lbd-stage.peek { animation: none; transform: none; }
+  }
+
   /* A FINISHED activity whose story gave no `endPoster`: drop the leaf's stale
      title-screen art so the page turns away as bare paper instead of showing the
      game's title screen one last time. Swapped in under the still-opaque overlay
