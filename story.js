@@ -64,6 +64,14 @@ window.STORY = {
     // game's own index.html; poster is the still shown on the leaf while the page
     // turns (grabbed from the game's home screen). The live game runs in the
     // body-level overlay iframe and unloads when you flip away.
+    //
+    // endPoster (OPTIONAL): the still to show on the leaf once the game has been
+    // FINISHED, used for the turn AWAY from the activity. Without it the reader
+    // gets one last look at the game's title screen as the page turns, since
+    // `poster` is that title screen — so with no endPoster the engine turns the
+    // page as bare paper instead. Grab this one from the game's OWN end screen
+    // ("All Levels Done." / the reward screen / the jackpot popup) at 1280x720:
+    //   endPoster: "assets/posters/lbd/LBD1-end.webp",
     { type: "lbd", src: "Game-Zone-LBD1/index.html",
       poster: "assets/posters/lbd/LBD1.webp", alt: "Coin Quest activity" },
 

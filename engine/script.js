@@ -390,6 +390,8 @@ window.addEventListener("message", function (e) {
     // the iframe still needs the pointer. Reset on leaving / reloading (see
     // updateLbdOverlay) so replaying the activity is interactive again.
     lbdStage.classList.add("inert");
+    // Retire the leaf's title-screen art so it does not turn away with the page.
+    spendLbdLeaf(at);
     // The page is NOT turned for the reader. dialogueDone() reveals both arrows and
     // starts the nudge, so the game's "all levels done" screen stays up with the
     // arrow blinking and the hand swiping until the reader chooses to move on.
@@ -397,6 +399,46 @@ window.addEventListener("message", function (e) {
     updateProgress();
   }
 });
+
+/* ---- The activity leaf's art, before vs. after the game is finished ---------
+   An lbd leaf's poster HAS to be the game's title screen: it is what the reader sees
+   while the page turns INTO the activity, and holding the overlay invisible until the
+   iframe has painted then makes the handoff a straight swap of two identical pictures
+   (see updateLbdOverlay). The moment the game reports FINISHED that same art becomes
+   wrong — it would ride the turn AWAY as one last look at the title screen, right
+   after the reader has just beaten the game.
+
+   So the art is swapped only at that moment: to the story's `endPoster` for that page
+   if one is supplied, otherwise the stale art is simply dropped and the page's own
+   paper turns instead. Either way the swap happens underneath the still-opaque game
+   overlay, so it is never seen happening.
+
+   restoreSpentLbdLeaves() then puts the title poster back once a turn has settled and
+   that page is no longer the current one, so turning back INTO the activity later
+   still lines up with the game's own title screen. */
+function spendLbdLeaf(idx) {
+  const leaf = leaves[idx], page = pages[idx];
+  if (!leaf || !page || page.type !== "lbd") return;
+  const front = leaf.querySelector(".face.front");
+  const img = front && front.querySelector("img.page-media");
+  if (!front || !img) return;
+  if (page.endPoster) img.src = page.endPoster;
+  else front.classList.add("lbd-spent");     // CSS drops the art → bare page paper
+}
+
+function restoreSpentLbdLeaves(exceptIdx) {
+  pages.forEach(function (page, i) {
+    if (page.type !== "lbd" || i === exceptIdx) return;
+    const leaf = leaves[i];
+    const front = leaf && leaf.querySelector(".face.front");
+    const img = front && front.querySelector("img.page-media");
+    if (!front || !img) return;
+    front.classList.remove("lbd-spent");
+    if (page.endPoster && page.poster && img.getAttribute("src") !== page.poster) {
+      img.src = page.poster;                 // back to the title screen for a re-entry
+    }
+  });
+}
 
 /* The overlay has TWO sizes:
      • page size  — parked exactly over the book's page rectangle. This is how the
@@ -451,6 +493,11 @@ function updateLbdOverlay() {
   if (!lbdStage || !lbdFrame) return;
   const page = pages[flipped];
   const onLbd = opened && ready && !animating && page && page.type === "lbd" && page.src;
+  // Only once a turn has SETTLED: give every activity we are not currently on its
+  // title poster back, ready for a later turn back into it. Guarded on !animating so
+  // a finished activity's art is never restored mid-flight — that would put the title
+  // screen back on the very sheet that is turning away.
+  if (!animating) restoreSpentLbdLeaves(flipped);
   // Entering or leaving an activity swaps the arrows between the viewport's
   // corners (game full screen) and the book's corners — re-run the layout once.
   if (!!onLbd !== lbdWasOn) {
@@ -1476,6 +1523,7 @@ function resetToStart() {
   animating = false;          // never carry a stuck flip-lock into the next read
   maxReached = 0;             // a fresh read re-gates NEXT on every page's video
   lbdDone.clear();            // …and the activities must be played again
+  restoreSpentLbdLeaves(-1);  // every activity leaf shows its title screen again
   updateLbdOverlay();         // back at the cover → hide + unload any running game
   renderLeaves();
   clearFlipFX(null);                           // kill any lingering cast shadow / flex

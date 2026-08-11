@@ -1029,6 +1029,12 @@
      to #flipbook underneath and the reader can swipe/drag the corner to turn the
      page — not just tap the arrows. Cleared on leaving or reloading the activity. */
   .lbd-stage.inert { pointer-events: none; }
+
+  /* A FINISHED activity whose story gave no `endPoster`: drop the leaf's stale
+     title-screen art so the page turns away as bare paper instead of showing the
+     game's title screen one last time. Swapped in under the still-opaque overlay
+     (see spendLbdLeaf), so the change itself is never visible. */
+  .face.front.lbd-spent img.page-media { visibility: hidden; }
   #lbdFrame {
     position: absolute; inset: 0; width: 100%; height: 100%;
     border: 0; display: block; background: #0a0f2d;
