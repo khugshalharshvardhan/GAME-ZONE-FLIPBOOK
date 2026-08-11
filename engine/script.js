@@ -523,7 +523,8 @@ function updateLbdOverlay() {
     lbdStage.classList.add("visible");
     lbdStage.setAttribute("aria-hidden", "false");
   } else {
-    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert", "peek");
+    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert");
+    clearLbdPeelClip();                     // never leave a peel clip on a hidden stage
     lbdStage.setAttribute("aria-hidden", "true");
     lbdFullscreen = false;                  // next visit starts page-sized again
     clearTimeout(lbdReadyTimer);
@@ -676,6 +677,33 @@ function polyCss(poly) {
     return p.x.toFixed(1) + "px " + p.y.toFixed(1) + "px";
   }).join(",") + ")";
 }
+/* The SAME polygon in percentages of the box rather than book-space px. An activity
+   page's game overlay is a body-level FIXED element measured in viewport pixels, not
+   the book's 1280×720, so px coordinates would land in the wrong place on it —
+   percentages resolve against whatever box they are applied to and so describe the
+   identical shape at any scale. */
+function polyCssPct(poly) {
+  return "polygon(" + poly.map(function (p) {
+    return (p.x / PW * 100).toFixed(3) + "% " + (p.y / PH * 100).toFixed(3) + "%";
+  }).join(",") + ")";
+}
+/* ---- Peeling an ACTIVITY page ------------------------------------------------
+   The leaf of an activity page is completely hidden behind the live game overlay, so
+   clipping only the leaf peels something nobody can see. Clipping the OVERLAY to the
+   same fold line makes the game screen itself peel: the lifted corner simply stops
+   being painted, which reveals the tan page-back and its drop shadow already
+   rendering beneath it inside #flipbook. Same geometry, same shading, same corner —
+   the identical page turn every other page gets. */
+function peelClipLbd(leaf, css) {
+  if (!lbdStage || !lbdStage.classList.contains("visible")) return;
+  if (leaf !== leaves[flipped]) return;                  // only the page being peeled
+  const page = pages[flipped];
+  if (!page || page.type !== "lbd") return;
+  lbdStage.style.clipPath = css;
+}
+function clearLbdPeelClip() {
+  if (lbdStage) lbdStage.style.clipPath = "";
+}
 function mixRGB(a, b, f) {                     // blend two [r,g,b] colours by f (0..1)
   return "rgb(" + Math.round(a[0] + (b[0] - a[0]) * f) + "," +
                   Math.round(a[1] + (b[1] - a[1]) * f) + "," +
@@ -690,6 +718,7 @@ function renderPeel(leaf, P) {
   const dl = Math.hypot(dx, dy);
   if (dl < 1.5) {                              // corner at rest → flat, unclipped page
     leaf.style.clipPath = "";
+    clearLbdPeelClip();
     crease.style.display = "none";
     peelFoldWrap.style.display = "none";
     return;
@@ -705,11 +734,15 @@ function renderPeel(leaf, P) {
     // INVALID CSS — the fold layer would paint UNCLIPPED as a full-box tan
     // flash — so treat this as a flat page instead.
     leaf.style.clipPath = "";
+    clearLbdPeelClip();
     crease.style.display = "none";
     peelFoldWrap.style.display = "none";
     return;
   }
   leaf.style.clipPath = front.length > 2 ? polyCss(front) : PEEL_EMPTY;
+  // …and clip the game overlay to the very same fold, so an activity page's screen
+  // peels with the sheet instead of sitting flat on top of it.
+  peelClipLbd(leaf, front.length > 2 ? polyCssPct(front) : PEEL_EMPTY);
   // Folded-over part = the peeled region reflected across the fold line.
   const back = peeled.map(function (p) {
     const s = side(p);
@@ -789,6 +822,7 @@ function bookPt(e) {
 function peelEnd(leaf) {
   renderLeaves();                              // resting classes for the final state
   leaf.style.clipPath = "";
+  clearLbdPeelClip();                          // un-peel an activity page's game screen
   if (leaf._crease) leaf._crease.style.display = "none";
   if (peelFoldWrap) peelFoldWrap.style.display = "none";
   leaf.style.transition = "none";
@@ -2133,9 +2167,9 @@ function restartCssAnim(el) {
 function cancelPeek() {
   peekTimers.forEach(clearTimeout);
   peekTimers = [];
-  // Always drop the activity page's lift, even if `peeking` was already cleared —
-  // otherwise the game overlay would be left mid-tilt.
-  if (lbdStage) lbdStage.classList.remove("peek");
+  // Always un-peel the game overlay, even if `peeking` was already cleared —
+  // otherwise an activity page would be left with a clipped-off corner.
+  clearLbdPeelClip();
   if (!peeking) return;
   peeking = false;
   const leaf = leaves[flipped];
@@ -2150,22 +2184,11 @@ function cancelPeek() {
   updateZ();
 }
 function peekFlip() {
-  if (!canShowHint()) return;
-  // ACTIVITY PAGE: the live game overlay is a fixed, opaque, body-level layer at z600,
-  // so it covers the leaf completely — peeling the sheet underneath it would happen
-  // entirely out of sight, which is why the lift used to be skipped here and those
-  // pages got the hand on its own. On a finished activity the game screen IS the page,
-  // so lift THAT instead: same rhythm, same read, and now every page nudges the same
-  // way. (canShowHint() is already false while the game is still being played.)
-  const curPage = pages[flipped];
-  if (curPage && curPage.type === "lbd" &&
-      lbdStage && lbdStage.classList.contains("visible")) {
-    lbdStage.classList.add("peek");
-    restartCssAnim(lbdStage);                  // re-phase with the hand every beat
-    peeking = true;
-    return;
-  }
-  if (peeking) return;
+  if (peeking || !canShowHint()) return;
+  // NOTE: an ACTIVITY page takes this exact same path. The lift used to be skipped
+  // there because the game overlay hides the leaf, so the peel happened out of sight;
+  // renderPeel now clips the overlay to the same fold (see peelClipLbd), so the game
+  // screen peels from the bottom-right corner like any other page. No special case.
   const leaf = leaves[flipped];
   if (!leaf) return;
   peeking = true;
@@ -2218,9 +2241,9 @@ function peekFlip() {
 function triggerHint() {
   if (!canShowHint()) { idleHintTimer = setTimeout(triggerHint, NUDGE_GAP_MS); return; }
   showFlipHint();
-  // ONE GESTURE: the hand and the page-lift are (re)started in the SAME tick at the top
-  // of every beat, so they always move together. The lift now runs on EVERY page — an
-  // activity page lifts its game overlay instead of the hidden leaf (see peekFlip), so
+  // ONE GESTURE: the hand and the corner-peel are (re)started in the SAME tick at the
+  // top of every beat, so they always move together. The peel now runs on EVERY page,
+  // activity pages included — renderPeel clips their game overlay to the same fold, so
   // no page is left with only the hand.
   restartCssAnim(flipHint);
   peekFlip();
