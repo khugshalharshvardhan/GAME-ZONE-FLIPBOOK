@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m http.server 8765)",
+      "Bash(where node *)",
+      "Bash(where npx *)",
+      "Bash(npx --yes http-server -p 8765 -c-1 -s)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/index.html)",
+      "Bash(taskkill /F /FI \"WINDOWTITLE eq npx*\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8765)",
+      "Bash(taskkill /PID 23852 /F)",
+      "PowerShell(Stop-Process -Id 23852 -Force -ErrorAction SilentlyContinue)",
+      "Bash(npx --yes serve -p 8765 .)",
+      "Bash(curl -s http://localhost:8765/index.html)",
+      "Bash(curl -sL http://localhost:8765/)",
+      "Bash(grep 'linearGradient id' 'f:/CG Game/Game-Zone-LBD3/assets/images/__TRACKED_VAR__')"
+    ]
+  }
+}

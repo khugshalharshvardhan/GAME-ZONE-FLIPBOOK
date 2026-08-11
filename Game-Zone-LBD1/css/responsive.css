@@ -1,0 +1,100 @@
+/* Responsive adjustments
+   The 16:9 cabinet (.game-container) scales gracefully on every landscape
+   viewport via vw/vh + max-width/max-height + container queries. The only
+   genuinely awkward case is portrait orientation on phones/tablets, where
+   the cabinet collapses to a thin strip and text becomes unreadable.
+   We surface a friendly hint and let the user continue anyway if they want. */
+
+/* ── Rotate-to-landscape prompt ────────────────────────────────── */
+.rotate-prompt {
+    position: fixed;
+    inset: 0;
+    z-index: 100050; /* above QA UI + everything else */
+    background: radial-gradient(ellipse at center, rgba(11, 0, 26, 0.95) 0%, rgba(0, 0, 0, 0.98) 80%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: #fff;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    text-align: center;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+/* Show ONLY when both: orientation is portrait AND viewport is phone/tablet sized.
+   Skip on portrait monitors / large tablets where the cabinet still has room. */
+@media (orientation: portrait) and (max-width: 1024px) {
+    body:not(.rotate-dismissed) .rotate-prompt {
+        display: flex;
+    }
+}
+
+.rotate-prompt__card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(92, 209, 255, 0.35);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(92, 209, 255, 0.15) inset;
+}
+
+.rotate-prompt__icon {
+    color: #5cd1ff;
+    margin: 0 auto 16px;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotate-prompt-spin 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(92, 209, 255, 0.5));
+}
+
+@keyframes rotate-prompt-spin {
+    0%, 12%   { transform: rotate(0deg); }
+    50%, 62%  { transform: rotate(-90deg); }
+    100%      { transform: rotate(0deg); }
+}
+
+.rotate-prompt__title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #fff;
+    letter-spacing: 0.01em;
+}
+
+.rotate-prompt__sub {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    margin: 0 0 22px;
+}
+
+.rotate-prompt__dismiss {
+    background: rgba(92, 209, 255, 0.15);
+    border: 1px solid rgba(92, 209, 255, 0.45);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.rotate-prompt__dismiss:hover,
+.rotate-prompt__dismiss:focus-visible {
+    background: rgba(92, 209, 255, 0.25);
+    border-color: rgba(92, 209, 255, 0.75);
+    outline: none;
+}
+
+/* Reduced motion — don't rock the icon back and forth. */
+@media (prefers-reduced-motion: reduce) {
+    .rotate-prompt__icon { animation: none; }
+}

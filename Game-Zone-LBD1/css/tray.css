@@ -1,0 +1,122 @@
+.money-tray {
+    position: absolute;
+    top: 71.39%; /* 771px / 1080px */
+    left: 5.78%; /* 111px / 1920px */
+    width: 88.44%; /* 1698px / 1920px */
+    height: 20.56%; /* 222px / 1080px */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tray-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.money-area {
+    position: relative;
+    z-index: 1;
+    width: 92.37%; /* 1568.45px / 1698px */
+    height: 83.94%; /* 186.34px / 222px */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.coins-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 45.69%; /* 716.61px / 1568.45px */
+    height: 74.02%; /* 137.94px / 186.34px */
+}
+
+.notes-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 53.07%; /* 832.48px / 1568.45px */
+    height: 100%;
+}
+
+.money-item {
+    position: relative;
+    cursor: grab;
+    transition: transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.money-item:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+.money-item:hover {
+    transform: translateY(-5%);
+}
+
+/* Locked tray items — the denomination isn't usable this level. Image is
+   swapped to the _Lock variant in JS; here we just kill the affordances. */
+.money-item.locked {
+    cursor: not-allowed;
+}
+.money-item.locked:hover {
+    transform: none;
+}
+.money-item.locked:active {
+    cursor: not-allowed;
+    transform: none;
+}
+.money-item.locked img {
+    cursor: not-allowed;
+}
+
+/* Disabled tray items — the per-denomination cap has been hit (10 coins
+   or 5 notes already in the dropzone). The image stays the _Default
+   variant, but the whole item dims so the cap feels evident. */
+.money-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(40%);
+    transition: opacity 150ms ease, filter 150ms ease;
+}
+.money-item.disabled:hover {
+    transform: none;
+}
+.money-item.disabled:active {
+    cursor: not-allowed;
+    transform: none;
+}
+.money-item.disabled img {
+    cursor: not-allowed;
+}
+
+.money-item.coin {
+    /* Base height overridden by specific data-value selectors to match real coin scaling */
+}
+
+/* Authentic Coin Scalings based on Indian currency relative dimensions */
+.money-item.coin[data-value="1"] { height: 89.7%; }
+.money-item.coin[data-value="2"] { height: 100%; }
+.money-item.coin[data-value="5"] { height: 89.7%; }
+.money-item.coin[data-value="10"] { height: 99.6%; }
+.money-item.coin[data-value="20"] { height: 99.6%; }
+
+.money-item.note {
+    height: 100%;
+    width: 49.4%; /* 411.4px / 832.48px */
+}
+
+.money-item img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0px 2.42px 0px #3a2008);
+}

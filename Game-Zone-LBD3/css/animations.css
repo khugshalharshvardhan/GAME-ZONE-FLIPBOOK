@@ -1,0 +1,537 @@
+/* animations.css - Game interactions and animations */
+
+/* 1. Lever Pull Smooth Animation */
+#lever-handle {
+    transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+#lever-handle:hover {
+    filter: brightness(1.1);
+}
+
+#lever-handle.pulled {
+    /* Rotates the stick to match Liver.svg, while scaleY shrinks it vertically to simulate a 3D pull FORWARD towards the screen */
+    transform: rotate(12deg) scaleY(0.65) scaleX(0.95);
+}
+
+/* 2. Cabinet Shake Animation */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-0.5deg); }
+    20% { transform: translate(-3px, 0px) rotate(0.5deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(0.5deg); }
+    50% { transform: translate(-1px, 2px) rotate(-0.5deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-0.5deg); }
+    80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-0.5deg); }
+}
+
+.shake-active .cabinet-aspect-wrapper {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* 3. Slot Machine Glow */
+@keyframes cabinetGlow {
+    0% { filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); }
+    50% { filter: drop-shadow(0 0px 60px rgba(255, 200, 34, 0.8)); }
+    100% { filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); }
+}
+
+.glow-active .cabinet-img {
+    animation: cabinetGlow 2s ease-in-out;
+}
+
+/* 4. Lock Pulse & Glow Animation */
+@keyframes lockPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)) brightness(1); }
+    50% { transform: scale(1.04); filter: drop-shadow(0 0 10px rgba(255, 200, 34, 0.35)) brightness(1.08); }
+    100% { transform: scale(1); filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35)) brightness(1); }
+}
+
+.pulse-active {
+    animation: lockPulse 2.4s ease-in-out infinite;
+}
+
+/* Lock opening — a little jiggle then it pops away to reveal the slot */
+@keyframes lockUnlock {
+    0%   { transform: scale(1) rotate(0deg);   opacity: 1; filter: drop-shadow(0 0 0 rgba(255,200,34,0)); }
+    20%  { transform: scale(1.18) rotate(-12deg); }
+    45%  { transform: scale(1.18) rotate(12deg); filter: drop-shadow(0 0 18px rgba(255,200,34,0.9)) brightness(1.3); }
+    70%  { transform: scale(1.28) rotate(0deg); opacity: 1; }
+    100% { transform: scale(0.1) rotate(0deg);  opacity: 0; }
+}
+
+.lock-icon.unlocking {
+    animation: lockUnlock 0.8s ease-in-out forwards;
+}
+
+/* 5. Active Slot — visual is provided by Slot1_Cabinet.svg overlay */
+
+/* 6. Success/Error glowing animations */
+@keyframes successPulse {
+    0% {
+        stroke: #79F01D;
+        filter: url(#glow-green-dim);
+    }
+    50% {
+        stroke: #79F01D;
+        filter: url(#glow-green-peak);
+    }
+    100% {
+        stroke: #79F01D;
+        filter: url(#glow-green-dim);
+    }
+}
+
+.border-path.correct {
+    /* Static green border - no pulsing */
+}
+
+@keyframes errorPulse {
+    0% {
+        stroke: #D52319;
+        filter: url(#glow-red-dim);
+    }
+    50% {
+        stroke: #D52319;
+        filter: url(#glow-red-peak);
+    }
+    100% {
+        stroke: #D52319;
+        filter: url(#glow-red-dim);
+    }
+}
+
+.border-path.incorrect {
+    animation: errorPulse 0.5s 3 ease-in-out forwards;
+}
+
+@keyframes activePulse {
+    0% {
+        filter: url(#glow-gold-dim);
+    }
+    50% {
+        filter: url(#glow-gold-bright);
+    }
+    100% {
+        filter: url(#glow-gold-dim);
+    }
+}
+
+.border-path.active {
+    animation: activePulse 2s infinite ease-in-out;
+}
+
+/* 7. Instruction Panel Lights Animations */
+
+/* Clockwise golden chase wave for idle state */
+.cabinet-light {
+    animation: cabinetLightIdle 1.6s infinite linear;
+}
+
+@keyframes cabinetLightIdle {
+    0% {
+        filter: drop-shadow(0 0 15px #FEBA04) brightness(1.8);
+    }
+    12.5% {
+        filter: drop-shadow(0 0 4px rgba(254, 186, 4, 0.4)) brightness(1);
+    }
+    100% {
+        filter: drop-shadow(0 0 4px rgba(254, 186, 4, 0.4)) brightness(1);
+    }
+}
+
+/* Staggered delays to create a running chase wave */
+.cabinet-light[data-light-index="0"]  { animation-delay: 0.0s; }
+.cabinet-light[data-light-index="1"]  { animation-delay: 0.1s; }
+.cabinet-light[data-light-index="2"]  { animation-delay: 0.2s; }
+.cabinet-light[data-light-index="3"]  { animation-delay: 0.3s; }
+.cabinet-light[data-light-index="4"]  { animation-delay: 0.4s; }
+.cabinet-light[data-light-index="5"]  { animation-delay: 0.5s; }
+.cabinet-light[data-light-index="6"]  { animation-delay: 0.6s; }
+.cabinet-light[data-light-index="7"]  { animation-delay: 0.7s; }
+.cabinet-light[data-light-index="8"]  { animation-delay: 0.8s; }
+.cabinet-light[data-light-index="9"]  { animation-delay: 0.9s; }
+.cabinet-light[data-light-index="10"] { animation-delay: 1.0s; }
+.cabinet-light[data-light-index="11"] { animation-delay: 1.1s; }
+.cabinet-light[data-light-index="12"] { animation-delay: 1.2s; }
+.cabinet-light[data-light-index="13"] { animation-delay: 1.3s; }
+.cabinet-light[data-light-index="14"] { animation-delay: 1.4s; }
+.cabinet-light[data-light-index="15"] { animation-delay: 1.5s; }
+
+/* Success lights flash green */
+.success-lights-active .cabinet-light {
+    animation: cabinetLightSuccess 0.8s 3 ease-in-out forwards !important;
+}
+.success-lights-active .cabinet-light circle[fill="white"] {
+    animation: cabinetLightSuccessFill 0.8s 3 ease-in-out forwards !important;
+}
+
+@keyframes cabinetLightSuccess {
+    0%, 100% {
+        filter: drop-shadow(0 0 4px rgba(121, 240, 29, 0.4)) brightness(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 20px #79F01D) brightness(2);
+    }
+}
+@keyframes cabinetLightSuccessFill {
+    0%, 100% {
+        fill: #fff;
+    }
+    50% {
+        fill: #79F01D;
+    }
+}
+
+/* Failure lights flash red */
+.failure-lights-active .cabinet-light {
+    animation: cabinetLightFailure 0.5s 3 ease-in-out forwards !important;
+}
+.failure-lights-active .cabinet-light circle[fill="white"] {
+    animation: cabinetLightFailureFill 0.5s 3 ease-in-out forwards !important;
+}
+
+@keyframes cabinetLightFailure {
+    0%, 100% {
+        filter: drop-shadow(0 0 4px rgba(213, 35, 25, 0.4)) brightness(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 20px #D52319) brightness(2);
+    }
+}
+@keyframes cabinetLightFailureFill {
+    0%, 100% {
+        fill: #fff;
+    }
+    50% {
+        fill: #D52319;
+    }
+}
+
+/* 8. Slot Shaking Animation on Failure */
+@keyframes slotShake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-15px) rotate(-1deg); }
+    30% { transform: translateX(12px) rotate(1deg); }
+    45% { transform: translateX(-10px) rotate(-0.8deg); }
+    60% { transform: translateX(8px) rotate(0.6deg); }
+    75% { transform: translateX(-4px) rotate(-0.3deg); }
+    90% { transform: translateX(2px) rotate(0.1deg); }
+}
+
+.slot.shake-active {
+    animation: slotShake 0.6s ease-in-out;
+}
+
+/* 9. Jackpot Win Celebrations */
+.jackpot-active .cabinet-light {
+    animation: cabinetLightJackpot 0.8s infinite linear !important;
+}
+.jackpot-active .cabinet-light circle[fill="white"] {
+    animation: cabinetLightJackpotFill 0.8s infinite linear !important;
+}
+
+@keyframes cabinetLightJackpot {
+    0%, 100% { filter: drop-shadow(0 0 20px #F3D930) brightness(2); }
+    33% { filter: drop-shadow(0 0 20px #79F01D) brightness(2); }
+    66% { filter: drop-shadow(0 0 20px #D52319) brightness(2); }
+}
+@keyframes cabinetLightJackpotFill {
+    0%, 100% { fill: #F3D930; }
+    33% { fill: #79F01D; }
+    66% { fill: #D52319; }
+}
+
+/* 10. Reel Strip Scrolling Animations */
+
+@keyframes reelSpin {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+.reel-strip.spinning {
+    animation: reelSpin 0.15s infinite linear !important;
+    filter: blur(4.5px) !important;
+}
+
+.reel-strip.stopping {
+    transition: transform 1.8s cubic-bezier(0.15, 0.85, 0.35, 1), filter 0.6s ease !important;
+    filter: none !important;
+}
+
+/* 11. Replay Loop & Lever Animations */
+
+/* Glowing lever handle indicating it is clickable */
+.lever-glow-active #lever-handle {
+    animation: leverGlow 1.8s infinite ease-in-out !important;
+}
+
+@keyframes leverGlow {
+    0%, 100% {
+        filter:
+            drop-shadow(0 0 6px rgba(254, 186, 4, 0.85))
+            drop-shadow(0 0 12px rgba(254, 186, 4, 0.55))
+            brightness(1.15);
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 10px rgba(254, 186, 4, 1))
+            drop-shadow(0 0 18px rgba(254, 186, 4, 0.7))
+            brightness(1.4);
+    }
+}
+
+/* Replay spin transition: neon cyan chasing lights */
+.lever-pulled-active .cabinet-light {
+    animation: cabinetLightCyan 0.8s infinite linear !important;
+}
+
+.lever-pulled-active .cabinet-light circle[fill="white"] {
+    animation: cabinetLightCyanFill 0.8s infinite linear !important;
+}
+
+@keyframes cabinetLightCyan {
+    0% {
+        filter: drop-shadow(0 0 20px #00F0FF) brightness(2);
+    }
+    12.5% {
+        filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.4)) brightness(1);
+    }
+    100% {
+        filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.4)) brightness(1);
+    }
+}
+
+@keyframes cabinetLightCyanFill {
+    0% {
+        fill: #00F0FF;
+    }
+    12.5% {
+        fill: #fff;
+    }
+    100% {
+        fill: #fff;
+    }
+}
+
+/* 12. Glitter Lock Animations */
+@keyframes glitter1 {
+    0%, 100% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    45% {
+        transform: scale(1.1) rotate(90deg);
+        opacity: 0.95;
+    }
+    85% {
+        transform: scale(0.3) rotate(180deg);
+        opacity: 0.15;
+    }
+}
+
+@keyframes glitter2 {
+    0%, 100% {
+        transform: scale(0.1) rotate(0deg);
+        opacity: 0.05;
+    }
+    50% {
+        transform: scale(1.2) rotate(-90deg);
+        opacity: 1;
+    }
+    90% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+}
+
+/* 13. Guide Onboarding Animations */
+
+/* Slot 1 Guide Animation: move from 1 Rupee coin to Slot 1 center */
+@keyframes guideMoveSlot1 {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+    10% {
+        transform: translate(0, 0);
+        opacity: 0.6;
+    }
+    70% {
+        transform: translate(-15px, -412px);
+        opacity: 0.6;
+    }
+    85% {
+        transform: translate(-15px, -412px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+}
+
+/* Slot 2 Guide Animation: move from 2 Rupee coin to Slot 2 center */
+@keyframes guideMoveSlot2 {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+    10% {
+        transform: translate(0, 0);
+        opacity: 0.6;
+    }
+    70% {
+        transform: translate(390px, -427px);
+        opacity: 0.6;
+    }
+    85% {
+        transform: translate(390px, -427px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+}
+
+/* Slot 3 Guide Animation: move from 1 Rupee coin to Slot 3 center */
+@keyframes guideMoveSlot3 {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+    10% {
+        transform: translate(0, 0);
+        opacity: 0.6;
+    }
+    70% {
+        transform: translate(1039px, -412px);
+        opacity: 0.6;
+    }
+    85% {
+        transform: translate(1039px, -412px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+}
+
+/* Apply animations under intro/continuous contexts */
+.guide-active.guide-intro.active-slot-1 .guide-coin-wrapper {
+    animation: guideMoveSlot1 2.2s 3 ease-in-out forwards;
+}
+.guide-active.guide-continuous.active-slot-1 .guide-coin-wrapper {
+    animation: guideMoveSlot1 2.2s infinite ease-in-out;
+}
+
+.guide-active.guide-intro.active-slot-2 .guide-coin-wrapper {
+    animation: guideMoveSlot2 2.2s 3 ease-in-out forwards;
+}
+.guide-active.guide-continuous.active-slot-2 .guide-coin-wrapper {
+    animation: guideMoveSlot2 2.2s infinite ease-in-out;
+}
+
+.guide-active.guide-intro.active-slot-3 .guide-coin-wrapper {
+    animation: guideMoveSlot3 2.2s 3 ease-in-out forwards;
+}
+.guide-active.guide-continuous.active-slot-3 .guide-coin-wrapper {
+    animation: guideMoveSlot3 2.2s infinite ease-in-out;
+}
+
+/* 12. Jackpot — Confetti + Popup */
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 9000;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -40px;
+    width: 12px;
+    height: 18px;
+    opacity: 0;
+    will-change: transform, opacity;
+    animation-name: confettiFall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translate3d(0, -10vh, 0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate3d(var(--drift, 0px), 110vh, 0) rotate(var(--spin, 720deg));
+        opacity: 0.85;
+    }
+}
+
+/* Sits inside .cabinet-overlay, centred over the slot row */
+.jackpot-popup {
+    display: none;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.jackpot-popup.visible {
+    display: flex;
+}
+
+.jackpot-popup-card {
+    background: linear-gradient(180deg, #2A1456 0%, #4B2A8F 50%, #2A1456 100%);
+    padding: 56px 96px;
+    border-radius: 32px;
+    border: 4px solid #FFC822;
+    box-shadow:
+        0 0 0 8px rgba(255, 200, 34, 0.18),
+        0 0 80px rgba(255, 200, 34, 0.6),
+        inset 0 0 60px rgba(255, 200, 34, 0.35);
+    transform-origin: center center;
+}
+
+/* Same drop-from-the-top entrance the idle pill uses */
+.jackpot-popup.visible .jackpot-popup-card {
+    animation: pillDropDown 1.2s ease-out;
+}
+
+.jackpot-popup-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 64px;
+    line-height: 1.15;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease;
+}
+
+.jackpot-popup-title .jackpot-word {
+    display: inline-block;
+    color: #FFC822;
+    font-size: 96px;
+    letter-spacing: 4px;
+    text-shadow:
+        0 0 24px rgba(255, 200, 34, 0.8),
+        0 4px 12px rgba(0, 0, 0, 0.5);
+}
+

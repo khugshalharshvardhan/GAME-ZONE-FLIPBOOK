@@ -1,0 +1,74 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #000000;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    overflow: hidden;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Tab-hidden pause — main.js toggles .game-paused on <body> via the
+   visibilitychange event. Freezes every CSS animation in place so the
+   cinematic intro, target-amount breathing, ghost hints, ticket burst,
+   etc. don't tick on while the user isn't watching. */
+body.game-paused *,
+body.game-paused *::before,
+body.game-paused *::after {
+    animation-play-state: paused !important;
+}
+
+/* Non-interactive UI lockdown: backgrounds, decorations, labels, titles,
+   coin/note artwork etc. should not be draggable to the desktop, not be
+   selectable as text, and not be copyable as images.
+   Money items + QA tool opt back in below. */
+body {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+}
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none;
+}
+
+/* Money items + dropped coins ARE meant to be dragged — they drive the
+   core gameplay. Restore native drag for them only. The HTML5 `draggable`
+   attribute on the <img> still controls dragstart events; this just
+   re-enables the visual drag affordance. */
+.money-item img,
+.dropped-coin img {
+    -webkit-user-drag: element;
+    user-drag: element;
+}
+
+/* Where text selection genuinely matters: standard form controls and
+   the QA tool (so testers can copy comment text, drag in a textarea,
+   etc.). Everything else stays locked. */
+input, textarea, [contenteditable] {
+    user-select: auto;
+    -webkit-user-select: auto;
+    -ms-user-select: auto;
+}
+.qa-popup, .qa-popup *,
+.qa-sidebar, .qa-sidebar *,
+.qa-name-modal, .qa-name-modal *,
+.qa-toast {
+    user-select: text;
+    -webkit-user-select: text;
+    -ms-user-select: text;
+}

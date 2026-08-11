@@ -1,0 +1,93 @@
+/* ============================================================
+   Rotate-for-better-experience hint (portrait mobile only)
+   - Suggests rotation; never forces it
+   - Auto-hidden on landscape via media query
+   - Can be dismissed for the session via the close button
+   ------------------------------------------------------------ */
+
+#rotate-hint {
+    display: none; /* shown only by the portrait media query below */
+    position: fixed;
+    top: clamp(10px, 2.5vw, 24px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001; /* above the mute button (10000) and any overlay */
+
+    align-items: center;
+    gap: 10px;
+
+    padding: clamp(8px, 1.6vw, 12px) clamp(12px, 2.2vw, 18px);
+    border-radius: 999px;
+    border: 2px solid rgba(92, 209, 255, 0.55);
+    background: rgba(10, 27, 61, 0.92);
+    color: #5cd1ff;
+    box-shadow: 0 0 14px rgba(92, 209, 255, 0.3);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(13px, 3.4vw, 16px);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+
+    /* Stay below the mute button (top-right) - center the pill horizontally
+       but cap width so it doesn't crash into the mute button on narrow phones. */
+    max-width: calc(100vw - clamp(80px, 14vw, 110px));
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#rotate-hint svg {
+    width: clamp(18px, 4.2vw, 22px);
+    height: clamp(18px, 4.2vw, 22px);
+    flex-shrink: 0;
+    animation: rotateHintNudge 2.4s ease-in-out infinite;
+}
+
+@keyframes rotateHintNudge {
+    0%, 70%, 100% { transform: rotate(0deg); }
+    80%           { transform: rotate(-18deg); }
+    90%           { transform: rotate(18deg); }
+}
+
+#rotate-hint .rotate-hint-text {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#rotate-hint .rotate-hint-close {
+    background: none;
+    border: none;
+    color: currentColor;
+    font-size: clamp(18px, 4.5vw, 22px);
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+#rotate-hint .rotate-hint-close:hover,
+#rotate-hint .rotate-hint-close:focus-visible {
+    opacity: 1;
+}
+
+/* === Visibility rules ====================================================
+   Show only on portrait orientation with a small-ish viewport, i.e. phones
+   and small tablets. The .dismissed class lets the user opt out for the
+   session. As soon as the device rotates to landscape, the @media query
+   stops matching and the pill disappears - no JS required for that case. */
+@media screen and (orientation: portrait) and (max-width: 900px) {
+    #rotate-hint:not(.dismissed) {
+        display: inline-flex;
+    }
+}
+
+/* Belt-and-braces: never show in landscape, even on small screens. */
+@media screen and (orientation: landscape) {
+    #rotate-hint { display: none !important; }
+}

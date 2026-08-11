@@ -1,0 +1,150 @@
+/* Screen 0 Overlay */
+.screen-0-container {
+    position: absolute;
+    width: 100vw;
+    height: 56.25vw;
+    max-height: 100vh;
+    max-width: 177.78vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    background-color: #0b001a;
+}
+
+.screen-0-container.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.screen-0-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.play-btn {
+    position: absolute;
+    top: 66%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: min(20.5vw, 36.4vh);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.play-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+}
+
+.play-btn:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.play-btn img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+    /* Disable native image drag so the button can't be dragged off-screen. */
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
+
+.screen-0-decorations {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.screen-0-title {
+    position: absolute;
+    top: 41%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: min(12.5vw, 22.2vh);
+    line-height: 0.87;
+    pointer-events: none;
+    text-align: center;
+}
+
+.title-coin {
+    color: #fda802;
+    -webkit-text-stroke: min(0.2vw, 0.35vh) #fff275;
+    text-shadow: 0px 4px 15px rgba(251, 225, 82, 0.5);
+}
+
+.title-quest {
+    color: #004CD9;
+    -webkit-text-stroke: min(0.25vw, 0.45vh) #66d9ff;
+    text-shadow: 0px 4px 15px rgba(100, 151, 244, 0.6);
+}
+
+/* ============================================================================
+   FLIPBOOK OVERRIDE — square PLAY button
+   Replaces the wide "LET'S PLAY" pill with a square button carrying just a
+     triangle (no label), and pulses it until the reader taps. Appended by the flipbook
+   integration; delete this block to restore the original button.
+   ============================================================================ */
+.play-btn {
+    width: min(10vw, 17.5vh);
+    height: min(10vw, 17.5vh);
+    border-radius: 16%;
+    background: linear-gradient(180deg, #ffe067 0%, #f9c81a 48%, #e5a606 100%);
+    border: min(0.55vw, 0.95vh) solid #3a2a06;   /* dark keyline, as in the reference */
+    box-sizing: border-box;
+    box-shadow:
+        inset 0 min(0.5vw, 0.85vh) 0 rgba(255, 255, 255, 0.55),   /* top bevel */
+        inset 0 min(-0.6vw, -1vh) 0 rgba(120, 80, 0, 0.35),       /* base shade */
+        0 min(0.5vw, 0.9vh) min(1vw, 1.7vh) rgba(0, 0, 0, 0.5);
+    display: grid;
+    place-items: center;
+    animation: lbdPlayPulse 1.5s ease-in-out infinite;
+}
+.play-btn img { display: none; }          /* the old "LET'S PLAY" pill artwork */
+.play-btn::before {                        /* the triangle, drawn to scale */
+    content: "";
+    display: block;
+    width: 46%;
+    height: 54%;
+    margin-left: 7%;                       /* optical centring of a right-pointing shape */
+    background: #7a3d00;
+    clip-path: polygon(4% 0%, 100% 50%, 4% 100%);
+}
+.play-btn.tapped { animation: none; }      /* stop pulsing once it has been used */
+@keyframes lbdPlayPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 12px 26px rgba(0,0,0,0.50), 0 0 0 0 rgba(255,214,64,0.55),
+                    inset 0 6px 0 rgba(255,255,255,0.45), inset 0 -8px 0 rgba(0,0,0,0.18);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.06);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.50), 0 0 0 20px rgba(255,214,64,0),
+                    inset 0 6px 0 rgba(255,255,255,0.45), inset 0 -8px 0 rgba(0,0,0,0.18);
+    }
+}
+@media (prefers-reduced-motion: reduce) { .play-btn { animation: none; } }
+

@@ -1,0 +1,54 @@
+/* main.css - Core styles and variables */
+
+:root {
+    --bg-color: #000;
+    --text-color: #fff;
+    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Disable text selection + iOS long-press menus across the whole UI.
+       Pointer events stay intact, so the drag-drop game logic (which uses
+       pointer events, not the native HTML5 drag API) is unaffected. */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Kill the native HTML5 drag handle on every image / svg / video.
+   Coins / notes are dragged via pointer events, not the native API, so
+   this only blocks the unwanted "drag image to desktop/tab" behaviour. */
+img,
+svg,
+video,
+embed,
+object {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    user-drag: none;
+}
+
+body {
+    font-family: var(--font-primary);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden; /* Prevent scrolling to keep the arcade experience immersive */
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Freeze every running CSS animation when the tab is hidden / window minimised.
+   Resumes from the same frame when the player comes back. */
+body.tab-hidden,
+body.tab-hidden *,
+body.tab-hidden *::before,
+body.tab-hidden *::after {
+    animation-play-state: paused !important;
+}
+

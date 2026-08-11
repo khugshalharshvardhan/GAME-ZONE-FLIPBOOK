@@ -1,0 +1,54 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #000000;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    overflow: hidden;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* === Non-interactive UI hygiene =============================================
+   Nothing in the game UI should be draggable, selectable, or long-press
+   saveable by default - backgrounds, decorations, button glyphs, level text,
+   target/question labels, score badges, the cabinet art, etc. Gameplay tokens
+   (money items + dropped coins) re-enable drag explicitly below.
+   ========================================================================== */
+body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* iOS: stop the long-press "Save Image" / "Copy" callout that would
+       otherwise interrupt a held drag on a coin or appear on backgrounds. */
+    -webkit-touch-callout: none;
+}
+
+img,
+svg {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Gameplay tokens - drag must stay available so coins and notes can be moved
+   between the tray and the dropzone. The HTML5 `draggable` attribute on the
+   tray imgs (set in markup) and on dynamically-created .dropped-coin divs
+   (set in JS) handles the actual drag-and-drop API; these rules just stop
+   WebKit from clamping the native drag down. */
+.money-item img,
+.dropped-coin,
+.dropped-coin img {
+    -webkit-user-drag: element;
+    user-drag: element;
+}

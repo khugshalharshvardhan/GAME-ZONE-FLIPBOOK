@@ -1,0 +1,165 @@
+.dropzone-container {
+    position: absolute;
+    top: 20.74%; /* 224px / 1080px */
+    left: 7.92%; /* 152px / 1920px */
+    width: 84.17%; /* 1616px / 1920px */
+    height: 47.04%; /* 508px / 1080px */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dropzone-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: filter 0.3s ease; /* Transition glows */
+}
+
+.dropzone-bg.is-glow {
+    /* Blue/cyan glow for standard drag */
+    filter: drop-shadow(0px 0px 10px rgba(0, 204, 255, 0.7));
+}
+
+.dropzone-bg.success-glow {
+    /* Green glow for success */
+    filter: drop-shadow(0px 0px 12px rgba(0, 255, 128, 0.8));
+}
+
+.dropzone-bg.error-glow {
+    /* Red glow for failure */
+    filter: drop-shadow(0px 0px 12px rgba(255, 50, 50, 0.8));
+}
+
+.dropzone-text {
+    position: absolute;
+    z-index: 1;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2vw; /* Fits arcade scaling */
+    color: rgba(0, 229, 255, 0.6); /* #00E5FF at 60% opacity */
+    pointer-events: none;
+    letter-spacing: 2px;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.dropzone-text.hidden {
+    opacity: 0;
+}
+
+
+
+.dropzone-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Let the container handle drag events */
+}
+
+.dropped-coin {
+    position: relative;
+    width: 8%; /* base width for coin */
+    transition: all 0.3s ease;
+    cursor: grab;
+    pointer-events: auto; /* Required to allow dragging out of the dropzone */
+    flex-shrink: 0; /* Prevents coins from shrinking when row fills up */
+}
+
+.dropped-coin.note {
+    width: 25%; /* accurately sized note (wider) */
+}
+
+.dropped-coin:active {
+    cursor: grabbing;
+}
+
+.dropped-coin img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5));
+}
+
+.dropzone-area.layout-1 {
+    /* default centered */
+}
+
+.dropzone-area.layout-2 {
+    gap: 2%; /* Add explicit gap for 2 items */
+}
+
+.dropzone-area.layout-3 {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    row-gap: 2%; /* tighter rows so a wrapped cluster stays shorter */
+    padding: 2% 10%; /* symmetric padding - cluster stays vertically centered */
+}
+
+/* Reset margins for layout-3 items */
+.dropzone-area.layout-3 .dropped-coin {
+    margin: 0 1%;
+}
+
+/* Same coins overlap more tightly so a row holds more before wrapping. */
+.dropzone-area.layout-3 .dropped-coin.coin[data-value="1"] + .dropped-coin.coin[data-value="1"],
+.dropzone-area.layout-3 .dropped-coin.coin[data-value="2"] + .dropped-coin.coin[data-value="2"],
+.dropzone-area.layout-3 .dropped-coin.coin[data-value="5"] + .dropped-coin.coin[data-value="5"],
+.dropzone-area.layout-3 .dropped-coin.coin[data-value="10"] + .dropped-coin.coin[data-value="10"],
+.dropzone-area.layout-3 .dropped-coin.coin[data-value="20"] + .dropped-coin.coin[data-value="20"] {
+    margin-left: -7%;
+}
+
+/* Notes scale down as more are added. --note-scale is a multiplier set by
+   updateNoteScale() in dragDrop.js based on the live note count. Width and
+   same-note overlap scale together, so the "deck of cards" visual ratio stays
+   constant. Fallback 0.88 (= 22% width) covers the case before JS sets it. */
+.dropzone-area.layout-3 .dropped-coin.note {
+    width: calc(25% * var(--note-scale, 0.88));
+}
+
+.dropzone-area.layout-3 .dropped-coin.note[data-value="10"] + .dropped-coin.note[data-value="10"],
+.dropzone-area.layout-3 .dropped-coin.note[data-value="20"] + .dropped-coin.note[data-value="20"],
+.dropzone-area.layout-3 .dropped-coin.note[data-value="50"] + .dropped-coin.note[data-value="50"] {
+    margin-left: calc(-22% * var(--note-scale, 0.88));
+}
+
+.action-btn {
+    position: absolute;
+    bottom: 8%; /* Lowered from 15% */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15%; /* Increased from 12% */
+    cursor: pointer;
+    background: none;
+    border: none;
+    z-index: 10;
+    transition: transform 0.1s ease;
+}
+
+.action-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+}
+
+.action-btn:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.action-btn.hidden {
+    display: none;
+}
+
+.action-btn img {
+    width: 100%;
+    height: auto;
+}

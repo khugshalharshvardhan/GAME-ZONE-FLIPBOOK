@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game-Zone LBD 2</title>
+  
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon/favicon-96x96.webp">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon/favicon.svg">
+  <link rel="shortcut icon" href="assets/images/favicon/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon/apple-touch-icon.webp">
+  <link rel="manifest" href="assets/images/favicon/site.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/animation.css">
+  <link rel="stylesheet" href="css/dropzone.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/tray.css">
+  <link rel="stylesheet" href="css/screen0.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/level-intro.css">
+  <link rel="stylesheet" href="css/rotate-hint.css">
+  <!-- FLIPBOOK INTEGRATION - title-screen voice-over.
+       Started here in <head> rather than at the end of <body> so it sounds the
+       instant the title page appears: this game pulls several MB of art, and
+       running it later put the voice noticeably behind the picture. -->
+  <link rel="preload" as="audio" href="Coin Quest 2.ogg">
+  <script>
+    window.__titleVO = new Audio('Coin Quest 2.ogg');
+    window.__titleVO.preload = 'auto';
+    (function () {
+      try {
+        var p = window.__titleVO.play();
+        if (p && p.catch) p.catch(function () {});
+      } catch (_) {}
+    })();
+  </script>
+</head>
+<body>
+  <div id="rotate-hint" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 18.29 0 12 0l-.66.03 3.81 3.81 1.33-1.32zm-6.25-.77c-.59-.59-1.54-.59-2.12 0L1.75 8.11c-.59.59-.59 1.54 0 2.12l12.02 12.02c.59.59 1.54.59 2.12 0l6.36-6.36c.59-.59.59-1.54 0-2.12L10.23 1.75zm4.6 19.44L2.81 9.17l6.36-6.36 12.02 12.02-6.36 6.36zm-7.31.29C4.25 19.94 1.91 16.76 1.55 13H.05C.56 19.16 5.71 24 12 24l.66-.03-3.81-3.81-1.33 1.32z"/>
+    </svg>
+    <span class="rotate-hint-text">Rotate your device for the best experience</span>
+    <button type="button" class="rotate-hint-close" aria-label="Dismiss rotation hint" title="Dismiss">&times;</button>
+  </div>
+
+  <div id="app" class="app-wrapper">
+    <div class="cabinet-wrapper">
+      
+      <!-- Screen 0 (Pre-LBD Screen) -->
+      <div id="screen-0" class="screen-0-container">
+        <img src="assets/images/Screen0_BG.webp" alt="Start Screen Background" class="screen-0-bg" draggable="false" />
+        <img src="assets/images/Decorative_element.svg" alt="" class="screen-0-decorations" draggable="false" />
+        
+        <div class="screen-0-title">
+          <div class="title-coin">COIN</div>
+          <div class="title-quest">QUEST 2</div>
+        </div>
+
+        <button id="play-btn" class="play-btn">
+          <img src="assets/images/Play_BTN.svg" alt="Let's Play" draggable="false" />
+        </button>
+      </div>
+
+      <div class="game-container">
+        <div class="background-container">
+          <img src="assets/images/BG.webp" alt="Arcade Cabinet Background" class="cabinet-bg" draggable="false" />
+        </div>
+        
+        <div class="ui-layer">
+          <!-- Header Area -->
+          <header class="game-header">
+            <div class="target-box">
+              <img src="assets/images/Target_box.svg" alt="Target Box" class="target-bg" draggable="false" />
+              <div class="target-content">
+                <span class="target-label">TARGET</span>
+                <span class="target-amount">₹36</span>
+              </div>
+            </div>
+            
+            <div class="question-box">
+              <img src="assets/images/Question_template.svg" alt="Question Box" class="question-bg" draggable="false" />
+              <!-- Starts empty - the typewriter fills it in sync with the VO
+                   when the level intro completes (see dragDrop.js) -->
+              <div class="question-content"></div>
+            </div>
+          </header>
+
+          <!-- Drop Zone -->
+          <div class="dropzone-container">
+            <img src="assets/images/Drop_zone.svg" alt="Drop Zone Background" class="dropzone-bg" id="dropzone-bg" draggable="false" />
+            <div class="dropzone-text" id="dropzone-text">DRAG & DROP MONEY HERE</div>
+            <div class="dropzone-area" id="dropzone"></div>
+            
+            <!-- Check Button (hidden by default) -->
+            <button class="action-btn check-btn hidden" id="check-btn">
+              <img src="assets/images/Check btn.svg" alt="Check" draggable="false" />
+            </button>
+          </div>
+
+          <!-- Money Tray -->
+          <div class="money-tray">
+            <img src="assets/images/Money rack.svg" alt="Money Rack" class="tray-bg" draggable="false" />
+            
+            <div class="money-area">
+              <!-- Coins -->
+              <div class="coins-container" id="coins-container">
+                <div class="money-item coin" data-value="1">
+                  <img src="assets/images/Money/One_Rupee_Default.webp" alt="₹1 Coin" draggable="true" />
+                </div>
+                <div class="money-item coin" data-value="2">
+                  <img src="assets/images/Money/Two_Rupee_Default.webp" alt="₹2 Coin" draggable="true" />
+                </div>
+                <div class="money-item coin" data-value="5">
+                  <img src="assets/images/Money/Five_Rupee_Default.webp" alt="₹5 Coin" draggable="true" />
+                </div>
+                <div class="money-item coin" data-value="10">
+                  <img src="assets/images/Money/Ten_Rupee_Default.webp" alt="₹10 Coin" draggable="true" />
+                </div>
+                <div class="money-item coin" data-value="20">
+                  <img src="assets/images/Money/Twenty_Rupee_Default.webp" alt="₹20 Coin" draggable="true" />
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="notes-container" id="notes-container">
+                <div class="money-item note" data-value="10">
+                  <img src="assets/images/Money/Ten_Rupee_Note_Default.webp" alt="₹10 Note" draggable="true" />
+                </div>
+                <div class="money-item note" data-value="20" id="dynamic-note">
+                  <img src="assets/images/Money/Twenty_Rupee_Note_Default.webp" alt="₹20 Note" draggable="true" />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hand Nudge -->
+          <img src="assets/images/hand_nudge.svg" alt="Drag Hint" class="hand-nudge hidden" id="hand-nudge" draggable="false" />
+
+        </div>
+
+        <!-- Level Transition Overlay -->
+        <div id="level-transition-overlay" class="level-transition-overlay hidden">
+          <h1 class="level-title" id="transition-title">LEVEL 1</h1>
+          <h2 class="level-subtitle" id="transition-subtitle">Make ₹36</h2>
+        </div>
+
+        <!-- Final Success Screen (Basket Blast) -->
+        <div id="final-success-screen" class="final-success-screen hidden">
+          <img src="assets/images/Success_BG.webp" alt="Basket Blast" class="success-bg" id="success-bg-1" draggable="false" />
+          <img src="assets/images/Success_BG2.webp" alt="Basket Blast Success" class="success-bg hidden" id="success-bg-2" draggable="false" />
+          <img src="assets/images/ball.webp" alt="Basketball" class="basketball" id="basketball" draggable="false" />
+          <img src="assets/images/hand_nudge.svg" alt="Tap Hint" class="basketball-nudge" id="basketball-nudge" draggable="false" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+<!-- FLIPBOOK INTEGRATION
+     - plays this activity's title-screen voice-over as the title page appears
+     - tells the book when the activity STARTS, so it can expand the page-sized
+       overlay to full screen (it is already told when the activity finishes,
+       from the end-of-game branch in this game's own JS, and shrinks back then)
+     - stops the play button pulsing once it has been used
+     Harmless standalone: the postMessage is skipped when there is no parent. -->
+<script>
+(function () {
+  var btn = document.getElementById('play-btn') || document.querySelector('.prelbd-play-btn');
+
+  var titleVO = window.__titleVO;   // started in <head>, see the block there
+
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    try { titleVO.pause(); } catch (_) {}   // the game's own audio takes over
+    btn.classList.add('tapped');
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ source: 'lbd', type: 'lbd-start' }, '*');
+      }
+    } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>
+

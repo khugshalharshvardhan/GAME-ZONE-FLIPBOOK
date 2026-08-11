@@ -1,0 +1,301 @@
+/* =========================================================
+   Cinematic Level Intro
+   Total runtime: 3.7s
+   --------------------------------------------------------- */
+
+.level-intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: block;
+    background:
+        radial-gradient(ellipse at center, #0a1b3d 0%, #03060f 65%, #000 100%);
+    overflow: hidden;
+    opacity: 0;
+    font-family: 'Rajdhani', sans-serif;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* subtle neon grid backdrop, purely CSS */
+.level-intro-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(92, 209, 255, 0.10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(92, 209, 255, 0.10) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+    animation: lvlGridDrift 18s linear infinite;
+}
+
+@keyframes lvlGridDrift {
+    0%   { background-position:   0px   0px,   0px   0px; }
+    100% { background-position:  64px  64px,  64px  64px; }
+}
+
+/* overall overlay fade in/out */
+.level-intro-overlay.is-playing {
+    animation: lvlOverlay 3.7s linear forwards;
+}
+
+@keyframes lvlOverlay {
+    0%   { opacity: 0; }
+    4%   { opacity: 1; }
+    86%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* --------------------------------------------------------- */
+/* Stage layout                                              */
+/* --------------------------------------------------------- */
+.level-intro-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --------------------------------------------------------- */
+/* Title - "LEVEL N"                                          */
+/* --------------------------------------------------------- */
+.level-intro-title {
+    margin: 0;
+    font-size: clamp(48px, 9vw, 140px);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: #5cd1ff;
+    text-shadow:
+        0 0 6px  #5cd1ff,
+        0 0 14px #5cd1ff,
+        0 0 32px #1f6bff,
+        0 0 60px #1f6bff;
+    transform-origin: 50% 100%;
+    opacity: 0;
+    will-change: transform, opacity, filter;
+}
+
+.is-playing .level-intro-title {
+    animation:
+        lvlTitleIn     0.40s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.20s forwards,
+        lvlTitleSquash 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)   1.05s,
+        lvlTitleOut    0.40s ease-in                          2.00s forwards;
+}
+
+@keyframes lvlTitleIn {
+    0%   { opacity: 0; transform: scale(0.6); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lvlTitleSquash {
+    0%   { transform: scale(1, 1); }
+    30%  { transform: scale(1.14, 0.78); }
+    100% { transform: scale(1, 1); }
+}
+
+@keyframes lvlTitleOut {
+    0%   { opacity: 1; transform: scale(1);             filter: blur(0); }
+    100% { opacity: 0; transform: scale(0.88) translateY(-12px); filter: blur(4px); }
+}
+
+/* --------------------------------------------------------- */
+/* Subtitle - "Make ₹N"                                       */
+/* --------------------------------------------------------- */
+.level-intro-subtitle {
+    margin: 0.45em 0 0 0;
+    font-size: clamp(24px, 4.2vw, 64px);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    color: #ffe455;
+    text-shadow:
+        0 0 6px  #ffe455,
+        0 0 16px #ffb000,
+        0 0 32px #ff8a00;
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.is-playing .level-intro-subtitle {
+    animation:
+        lvlSubIn  0.40s ease-out 0.50s forwards,
+        lvlSubOut 0.50s ease-in  3.20s forwards;
+}
+
+@keyframes lvlSubIn {
+    0%   { opacity: 0; transform: translateY(22px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lvlSubOut {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.06); }
+}
+
+/* --------------------------------------------------------- */
+/* Byte character                                            */
+/* --------------------------------------------------------- */
+.level-intro-byte {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(80px, 12vw, 160px);
+    height: auto;
+    /* Bottom-center pivot: squash compresses downward (weight feel) and
+       the bottom edge stays where the keyframe puts it. */
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -180vh) scale(0.95, 1.10);
+    opacity: 0;
+    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+/* Four-phase Bite landing (image src swaps in JS at each boundary):
+   0.75s -> 1.05s   Bite1 (falling)        ease-in  fall to title top
+   1.05s -> 1.17s   Bite2 (superhero)      ease-out impact squash
+   1.17s -> 1.32s   Bite3 (pop-up)         spring   recovery hop
+   1.32s -> 1.52s   Bite.webp (standing)    ease-out settle to idle
+   2.00s -> 2.40s   Bite.webp               ease-in  fade out                       */
+.is-playing .level-intro-byte {
+    animation:
+        lvlByteFall    0.30s ease-in                            0.75s forwards,
+        lvlByteImpact  0.12s ease-out                           1.05s forwards,
+        lvlByteRecover 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)  1.17s forwards,
+        lvlByteSettle  0.20s ease-out                           1.32s forwards,
+        lvlByteOut     0.40s ease-in                            2.00s forwards;
+}
+
+/* Resting translateY: -180% places Bite's bottom edge well above the title's
+   top edge, so even with transparent padding under the character art, his
+   visible feet read as standing on top of the LEVEL text instead of inside it.
+   With transform-origin: 50% 100% on .level-intro-byte, the impact squash
+   keeps that bottom edge planted while the body compresses downward. */
+@keyframes lvlByteFall {
+    0%   { transform: translate(-50%, -180vh) scale(0.95, 1.10); opacity: 0; }
+    20%  { opacity: 1; }
+    100% { transform: translate(-50%, -180%)  scale(0.92, 1.12); opacity: 1; }
+}
+
+@keyframes lvlByteImpact {
+    0%   { transform: translate(-50%, -180%) scale(0.92, 1.12); }
+    100% { transform: translate(-50%, -173%) scale(1.20, 0.82); }
+}
+
+@keyframes lvlByteRecover {
+    0%   { transform: translate(-50%, -173%) scale(1.20, 0.82); }
+    55%  { transform: translate(-50%, -215%) scale(0.95, 1.08); }
+    100% { transform: translate(-50%, -190%) scale(1.00, 1.00); }
+}
+
+@keyframes lvlByteSettle {
+    0%   { transform: translate(-50%, -190%) scale(1); }
+    100% { transform: translate(-50%, -180%) scale(1); }
+}
+
+@keyframes lvlByteOut {
+    0%   { opacity: 1; transform: translate(-50%, -180%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -210%) scale(0.85); }
+}
+
+/* Tiny screen shake on impact */
+.is-playing .level-intro-stage {
+    animation: lvlStageShake 0.15s ease-in-out 1.05s;
+}
+
+@keyframes lvlStageShake {
+    0%, 100% { transform: translate(0, 0); }
+    20%      { transform: translate(-3px,  2px); }
+    40%      { transform: translate( 3px, -2px); }
+    60%      { transform: translate(-2px, -1px); }
+    80%      { transform: translate( 2px,  1px); }
+}
+
+/* --------------------------------------------------------- */
+/* Shockwave ring on impact                                  */
+/* --------------------------------------------------------- */
+.level-intro-shockwave {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid #5cd1ff;
+    box-shadow:
+        0 0 24px #1f6bff,
+        inset 0 0 12px #5cd1ff;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+.is-playing .level-intro-shockwave {
+    animation: lvlShockwave 0.70s cubic-bezier(0.2, 0.8, 0.3, 1) 1.05s forwards;
+}
+
+@keyframes lvlShockwave {
+    0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 1; border-width: 4px; }
+    100% { transform: translate(-50%, -50%) scale(14);  opacity: 0; border-width: 1px; }
+}
+
+/* --------------------------------------------------------- */
+/* Particle burst                                            */
+/* --------------------------------------------------------- */
+.level-intro-particles {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.level-intro-particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #9ee5ff;
+    box-shadow:
+        0 0 8px  #5cd1ff,
+        0 0 18px #1f6bff;
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.is-playing .level-intro-particle {
+    animation: lvlParticle 0.80s cubic-bezier(0.2, 0.8, 0.3, 1)
+               calc(1.05s + var(--delay, 0ms)) forwards;
+}
+
+@keyframes lvlParticle {
+    0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+    65%  { opacity: 1; }
+    100% {
+        transform: translate(calc(-50% + var(--px, 0px)),
+                             calc(-50% + var(--py, 0px))) scale(0.2);
+        opacity: 0;
+    }
+}
+
+/* --------------------------------------------------------- */
+/* Reduced motion respect                                    */
+/* --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .level-intro-overlay,
+    .level-intro-overlay * {
+        animation-duration: 0.001s !important;
+        animation-delay: 0s !important;
+        transition: none !important;
+    }
+}

@@ -1,0 +1,7 @@
+/* Responsive adjustments */
+/* Since object-fit: contain handles most of the scaling perfectly, 
+   we can reserve this file for future media queries or container queries. */
+
+@media screen and (max-width: 768px) {
+    /* Mobile-specific adjustments if needed */
+}

@@ -1,0 +1,165 @@
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.3s ease-in-out;
+}
+
+.success-pop {
+    animation: successPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes successPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.ticket-burst-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+    perspective: 1000px; /* Enable 3D space */
+}
+
+.success-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 100;
+    opacity: 0;
+    animation: arcadeFlash 0.5s ease-out forwards;
+}
+
+@keyframes arcadeFlash {
+    0% { opacity: 0.4; }
+    100% { opacity: 0; }
+}
+
+.anim-ticket-strip {
+    position: absolute;
+    width: 25%;
+    object-fit: contain;
+    transform: translate3d(-50%, -50%, 0) scale(0);
+    opacity: 0;
+    transform-style: preserve-3d;
+}
+
+.anim-ticket-single {
+    position: absolute;
+    width: 9%;
+    object-fit: contain;
+    opacity: 0;
+    transform-style: preserve-3d;
+}
+
+.anim-confetti {
+    width: 4%; /* Confetti sizing */
+}
+
+@keyframes cornerBurst {
+    0% {
+        transform: translate3d(0, 0, 0) scale(var(--scale)) rotateZ(0deg) rotateX(0deg) rotateY(0deg);
+        opacity: 1;
+        animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); /* Explosive ease-out up */
+    }
+    45% {
+        /* Peak of arc */
+        transform: translate3d(calc(var(--tx) * 0.6), var(--peak-y), 50px) scale(var(--scale)) rotateZ(calc(var(--rot) * 0.5)) rotateX(360deg);
+        opacity: 1;
+        animation-timing-function: cubic-bezier(0.5, 0, 1, 1); /* Accelerating ease-in down */
+    }
+    100% {
+        /* Fall below the cabinet — end-y is set per particle in JS based on
+           the cabinet's measured height. Falls back to 15vh if unset. */
+        transform: translate3d(var(--tx), var(--end-y, 15vh), -50px) scale(var(--scale)) rotateZ(var(--rot)) rotateX(720deg) rotateY(360deg);
+        opacity: 0;
+    }
+}
+
+.hand-nudge {
+    position: absolute;
+    width: 9%; /* Increased size */
+    z-index: 200;
+    pointer-events: none; /* Let clicks pass through */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+}
+
+.hand-nudge.show {
+    opacity: 1;
+    animation: dragNudgeAnim 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes dragNudgeAnim {
+    0% {
+        transform: translate(0, 0) scale(1.1);
+        opacity: 0;
+    }
+    10% {
+        transform: translate(0, 0) scale(0.9); /* "Click/grab" */
+        opacity: 1;
+    }
+    70% {
+        transform: translate(var(--nudge-tx), var(--nudge-ty)) scale(0.9); /* Drag exactly to center of dropzone */
+        opacity: 1;
+    }
+    80% {
+        transform: translate(var(--nudge-tx), var(--nudge-ty)) scale(1.1); /* Release */
+        opacity: 0;
+    }
+    100% {
+        transform: translate(var(--nudge-tx), var(--nudge-ty)) scale(1.1);
+        opacity: 0;
+    }
+}
+
+.ghost-coin-tutorial {
+    position: absolute;
+    width: 6%; /* Match the tray coin scale closely */
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transform-origin: center center;
+    animation: ghostDragAnim 2.2s linear forwards;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.28)) brightness(0.98) saturate(0.9);
+    will-change: transform, opacity, filter;
+}
+
+@keyframes ghostDragAnim {
+    0% {
+        transform: translate3d(0, 0, 0) scale(0.94) rotate(-4deg);
+        opacity: 0;
+    }
+    8% {
+        transform: translate3d(0, 0, 0) scale(0.98) rotate(-2deg);
+        opacity: 0.25;
+    }
+    45% {
+        transform: translate3d(calc(var(--nudge-tx) * 0.48), calc(var(--nudge-ty) * 0.48 - 8px), 0) scale(1) rotate(3deg);
+        opacity: 0.5;
+    }
+    78% {
+        transform: translate3d(calc(var(--nudge-tx) * 0.92), calc(var(--nudge-ty) * 0.92 - 2px), 0) scale(0.99) rotate(6deg);
+        opacity: 0.45;
+    }
+    86% {
+        transform: translate3d(var(--nudge-tx), var(--nudge-ty), 0) scale(1.02) rotate(8deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate3d(var(--nudge-tx), var(--nudge-ty), 0) scale(1.02) rotate(8deg);
+        opacity: 0;
+    }
+}

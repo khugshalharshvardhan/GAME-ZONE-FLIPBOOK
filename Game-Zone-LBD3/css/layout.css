@@ -1,0 +1,1118 @@
+/* layout.css - Structural and layout styles for the game */
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    /* `dvh` tracks the dynamic viewport height (handles iOS Safari's
+       collapsible address bar). Falls back to the fixed `vh` above for
+       older browsers that don't understand `dvh`. */
+    height: 100dvh;
+    background: linear-gradient(to bottom, #08020f, #180424);
+    overflow: hidden;
+}
+
+.game-container {
+    width: 1920px;
+    height: 1080px;
+    background-image: url('../assets/images/BG.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
+    transform-origin: center center;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.cabinet-container {
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
+    top: 0;
+    left: 0;
+}
+
+.cabinet-img {
+    position: absolute;
+    top: 30px;
+    left: 41.5px;
+    width: 1837px;
+    height: 1050px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+}
+
+.cabinet-img-slot1 {
+    position: absolute;
+    top: 30px;
+    left: 41.5px;
+    width: 1837px;
+    height: 1050px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+    display: none;
+}
+
+.cabinet-img-slot1.visible {
+    display: block;
+}
+
+/* OVERLAY ELEMENTS FOR SCREEN 1 */
+
+.cabinet-overlay {
+    position: absolute;
+    top: 30px;
+    left: 41.5px;
+    width: 1837px;
+    height: 1050px;
+    pointer-events: none; /* Let clicks pass through to empty areas */
+}
+
+/* Re-enable pointer events for interactive elements */
+.cabinet-overlay > * {
+    pointer-events: auto;
+}
+
+.target-amount-container {
+    position: absolute;
+    top: 62px;
+    left: 442px;
+    width: 870px;
+    height: 188px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.target-amount {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 60px;
+    color: #fff;
+    white-space: nowrap;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+}
+
+.target-amount .highlight {
+    color: #ffc822; /* Golden yellow from Figma */
+}
+
+.slots-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.slot {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease, box-shadow 0.4s ease;
+}
+
+.slot-1 { left: 91.5px; top: 251.5px; width: 516.6px; height: 558px; }
+.slot-2 { left: 592px; top: 231px; width: 569px; height: 569px; }
+.slot-3 { left: 1144.5px; top: 251.5px; width: 517.7px; height: 558px; }
+
+.slot.tappable {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.slot.disabled {
+    pointer-events: none;
+}
+
+.slot.disabled .lock-icon {
+    display: block;
+}
+
+.slot.correct .lock-icon {
+    display: none;
+}
+
+.slot.active .lock-icon {
+    display: none;
+}
+
+.slot.active .drag-text {
+    display: block;
+}
+
+.drag-text {
+    display: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 52px;
+    color: #fff;
+    opacity: 0.7;
+    text-align: center;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.slot.active.has-drops .drag-text {
+    display: none;
+}
+
+/* FLIPBOOK OVERRIDE — "DRAG MONEY HERE" pulses while the matching voice-over
+   plays. game.js adds .vo-pulse the moment that line starts; the label hides
+   itself on the first drop (.has-drops above), so the pulse ends with it. */
+.drag-text.vo-pulse {
+    animation: dragTextPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes dragTextPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1);    text-shadow: 0 4px 12px rgba(0,0,0,0.6); }
+    50%      { opacity: 1;   transform: scale(1.09); text-shadow: 0 4px 12px rgba(0,0,0,0.6),
+                                                                  0 0 22px rgba(255,224,103,0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .drag-text.vo-pulse { animation: none; opacity: 1; }
+}
+
+/* Drop region inside slot 1 */
+.dropped-items {
+    position: absolute;
+    inset: 30px 30px 160px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    pointer-events: none;
+    transition: transform 0.25s ease;
+    transform-origin: center center;
+}
+
+.drop-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 16px;
+}
+
+.drop-stack {
+    display: flex;
+    align-items: center;
+}
+
+.drop-stack img {
+    display: block;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));
+    pointer-events: auto;
+    user-select: none;
+    touch-action: none;
+    cursor: grab;
+}
+
+/* Same-denom items fan to the right with overlap (like a hand of coins) */
+.coins-row .drop-stack img {
+    width: 90px;
+    height: 88px; /* 90 * 101.2 / 103.5 — preserves aspect ratio */
+}
+
+.coins-row .drop-stack img:not(:first-child) {
+    margin-left: -65px;
+}
+
+.notes-row .drop-stack img {
+    width: 280px;
+    height: 126.9px; /* 280 * 151.8 / 335 — preserves aspect ratio */
+}
+
+.notes-row .drop-stack img:not(:first-child) {
+    margin-left: -240px;
+}
+
+/* CHECK button (Check_btn.svg) — SVG already contains the label */
+.check-btn {
+    display: none;
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 57px; /* 200 * 65 / 229 */
+    background: url('../assets/images/Check_btn.svg') no-repeat center / contain;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    pointer-events: auto;
+    z-index: 10;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.check-btn:hover {
+    filter: brightness(1.12) drop-shadow(0 0 8px rgba(255, 200, 34, 0.5));
+    transform: translateX(-50%) scale(1.05);
+}
+
+/* Result text shown after a correct check (big "₹42") */
+/* Result text acting as the reel container */
+.result-text {
+    display: none;
+    position: absolute;
+    inset: 40px 0;
+    overflow: hidden;
+    pointer-events: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.reel-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 800%;
+    width: 100%;
+    transform: translateY(0);
+}
+
+.reel-item {
+    height: 12.5%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cooper Black', 'Ultra', 'Rajdhani', serif;
+    font-weight: 900;
+    font-size: 220px;
+    color: #fff;
+    -webkit-text-stroke: 5px #000;
+    paint-order: stroke fill;
+    text-shadow:
+        0 6px 0 #000,
+        0 10px 18px rgba(0, 0, 0, 0.55);
+    letter-spacing: 2px;
+    flex-shrink: 0;
+}
+
+/* Dynamic Slot Borders Overlay */
+.slot-borders-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.slot-fill {
+    fill: rgba(0, 0, 0, 0);
+    transition: fill 0.4s ease, filter 0.4s ease, opacity 0.4s ease;
+}
+
+.game-started .slot-fill:not(.active):not(.correct):not(.incorrect) {
+    fill: rgba(0, 0, 0, 0.55);
+}
+
+.slot-fill.active {
+    fill: url(#purple-grad);
+    filter: url(#inner-shadow-gold);
+    opacity: 1;
+}
+
+.slot-fill.correct {
+    fill: url(#purple-grad);
+    filter: url(#inner-shadow-green);
+    opacity: 1;
+}
+
+.slot-fill.correct.completed-dim {
+    fill: url(#purple-grad);
+    filter: url(#inner-shadow-green-dim);
+    opacity: 0.6;
+}
+
+.slot-fill.incorrect {
+    fill: url(#purple-grad);
+    filter: url(#inner-shadow-red);
+    opacity: 1;
+}
+
+.border-path {
+    stroke: transparent;
+    stroke-width: 4;
+    transition: stroke 0.3s ease, filter 0.3s ease, stroke-width 0.3s ease, opacity 0.4s ease;
+}
+
+.border-path.active {
+    stroke: #F3D930;
+    stroke-width: 3;
+    filter: url(#glow-gold-dim);
+    opacity: 1;
+}
+
+.border-path.correct {
+    stroke: #79F01D;
+    stroke-width: 3;
+    filter: url(#glow-green-dim);
+    opacity: 1;
+}
+
+.border-path.correct.completed-dim {
+    stroke: #79F01D;
+    stroke-width: 2;
+    filter: none;
+    opacity: 0.5;
+}
+
+.border-path.incorrect {
+    stroke: #D52319;
+    stroke-width: 3;
+    filter: url(#glow-red-dim);
+    opacity: 1;
+}
+
+.slot.correct .dropped-items,
+.slot.correct .check-btn,
+.slot.incorrect .check-btn {
+    display: none !important;
+}
+
+.slot.completed-inactive .result-text {
+    opacity: 0.3;
+    transition: opacity 0.4s ease;
+}
+
+.slot.correct .result-text,
+.slot.jackpot-active .result-text,
+.result-text:has(.spinning),
+.result-text:has(.stopping) {
+    display: block !important;
+}
+
+/* Hide the ₹42 reels once the scroll animation completes, so only the
+   "You have hit the JACKPOT" popup + confetti are visible in the slot row. */
+.slot.jackpot-active .result-text {
+    transition: opacity 0.6s ease;
+}
+
+.jackpot-settled .slot.jackpot-active .result-text {
+    opacity: 0;
+}
+
+/* Drop the green success glow on the slots once we enter the jackpot end screen */
+.jackpot-settled .slot-fill.correct {
+    filter: none;
+    transition: filter 0.5s ease;
+}
+
+.jackpot-settled .border-path.correct {
+    stroke: transparent;
+    filter: none;
+    transition: stroke 0.5s ease, filter 0.5s ease;
+}
+
+.slot.active.has-drops .check-btn {
+    display: block;
+}
+
+/* Drag ghost element (lives in .game-container so it inherits the scale) */
+.drag-ghost {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    z-index: 100;
+    transform: translate(-50%, -50%) scale(1.05);
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.55));
+}
+
+/* Disable native touch gestures on draggable currency */
+.coin:not(.locked),
+.note:not(.locked) {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.lock-icon {
+    width: 180px;
+    height: 180px;
+    color: #f1f2f6; /* Soft white/gray */
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+    transition: opacity 0.4s ease;
+}
+
+/* When the game is active, reduce lock opacity on locked slots */
+.game-started .slot.locked .lock-icon,
+.game-started .slot.disabled .lock-icon {
+    opacity: 0.3;
+}
+
+/* Lock Sparkles Container */
+.lock-sparkles {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Visibility based on slot state */
+.lock-sparkles {
+    display: none;
+}
+
+.slot.disabled .lock-sparkles,
+.slot.locked .lock-sparkles {
+    display: block;
+}
+
+/* Keep lock sparkles subtle so the lever stays the main focus */
+.lock-sparkles {
+    opacity: 0.4;
+}
+
+.lock-sparkles .sparkle.star {
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 0 5px rgba(254, 186, 4, 0.6));
+}
+
+.lock-sparkles .sparkle.dot {
+    width: 7px;
+    height: 7px;
+}
+
+/* Thin out the lock sparkles — only a few twinkle */
+.lock-sparkles .sp-3,
+.lock-sparkles .sp-5,
+.lock-sparkles .sp-6,
+.lock-sparkles .sp-8 {
+    display: none;
+}
+
+.slot.correct .lock-sparkles,
+.slot.active .lock-sparkles {
+    display: none !important;
+}
+
+/* When the game is active, hide the sparkles on locked slots */
+.game-started .slot.locked .lock-sparkles,
+.game-started .slot.disabled .lock-sparkles {
+    display: none !important;
+}
+
+/* Hide lock icon and sparkles while the slot is spinning or stopping */
+.slot:has(.spinning) .lock-icon,
+.slot:has(.spinning) .lock-sparkles,
+.slot:has(.stopping) .lock-icon,
+.slot:has(.stopping) .lock-sparkles {
+    display: none !important;
+}
+
+/* Lever-ball sparkles — only while the lever is glowing (idle / replay-ready) */
+.lever-sparkles {
+    position: absolute;
+    /* centred on the lever ball (cabinet coords cx 1776.5, cy 291.5) */
+    left: 1686.5px;
+    top: 201.5px;
+    width: 180px;
+    height: 180px;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+}
+
+.lever-glow-active .lever-sparkles {
+    display: block;
+}
+
+.lv-1 { top: 18px;  left: 116px; animation: glitter1 1.9s infinite ease-in-out; }
+.lv-2 { top: 58px;  left: 24px;  animation: glitter2 2.3s infinite ease-in-out; }
+.lv-3 { top: 110px; left: 122px; animation: glitter1 2.6s infinite ease-in-out; }
+.lv-4 { top: 40px;  left: 78px;  animation: glitter2 1.6s infinite ease-in-out; }
+.lv-5 { top: 96px;  left: 44px;  animation: glitter1 2.1s infinite ease-in-out; }
+.lv-6 { top: 122px; left: 92px;  animation: glitter2 1.8s infinite ease-in-out; }
+
+/* Individual Sparkle Elements */
+.sparkle {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sparkle.star {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 0 8px rgba(254, 186, 4, 0.9));
+}
+
+.sparkle.dot {
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 8px #fff);
+}
+
+/* Positions around/on the lock icon */
+.sp-1 {
+    top: 25px;
+    left: 45px;
+    animation: glitter1 2.2s infinite ease-in-out;
+}
+.sp-2 {
+    top: 45px;
+    right: 35px;
+    animation: glitter2 1.8s infinite ease-in-out;
+}
+.sp-3 {
+    bottom: 55px;
+    right: 45px;
+    animation: glitter1 2.5s infinite ease-in-out;
+}
+.sp-4 {
+    bottom: 35px;
+    left: 55px;
+    animation: glitter2 2s infinite ease-in-out;
+}
+.sp-5 {
+    top: 130px;
+    right: 25px;
+    animation: glitter1 1.5s infinite ease-in-out;
+}
+.sp-6 {
+    top: 110px;
+    left: 20px;
+    animation: glitter2 2.8s infinite ease-in-out;
+}
+/* Directly on the lock body/arch */
+.sp-7 {
+    top: 135px;
+    left: 135px;
+    width: 20px;
+    height: 20px;
+    animation: glitter1 2s infinite ease-in-out;
+}
+.sp-8 {
+    top: 75px;
+    right: 125px;
+    width: 18px;
+    height: 18px;
+    animation: glitter2 1.9s infinite ease-in-out;
+}
+
+.money-rack {
+    position: absolute;
+    /* Use exact Figma coordinate (867px) instead of mathematically centering against visible bounds */
+    top: 867px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.money-rack-inner {
+    position: relative;
+    height: 152px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.coins-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.coin {
+    display: block;
+    position: relative;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    transition: transform 0.2s ease, filter 0.2s ease;
+    cursor: pointer;
+}
+
+.coin-1 { width: 103.5px; height: 101.2px; }
+.coin-2 { width: 115.3px; height: 112.7px; }
+.coin-5 { width: 103.5px; height: 101.2px; }
+.coin-10 { width: 115px; height: 112.4px; }
+.coin-20 { width: 115px; height: 112.4px; }
+
+.coin:hover {
+    transform: scale(1.05) translateY(-5px);
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
+}
+
+.coin.locked,
+.note.locked {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.coin.locked:hover,
+.note.locked:hover {
+    transform: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+}
+
+/* Tolerance cap reached (4 of this denom in the active slot) — keep the
+   default art but dim and disable, so the player can see what hit the cap. */
+.coin.at-max,
+.note.at-max {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.coin.at-max:hover,
+.note.at-max:hover {
+    transform: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+}
+
+.notes-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.note {
+    display: block;
+    position: relative;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    transition: transform 0.2s ease, filter 0.2s ease;
+    cursor: pointer;
+    width: 335px;
+    height: 151.8px;
+}
+
+.note:hover {
+    transform: scale(1.05) translateY(-5px);
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
+}
+
+/* Replay Lever Interactive States */
+#lever-handle {
+    pointer-events: none; /* Block clicks by default */
+}
+
+.lever-glow-active #lever-handle {
+    pointer-events: auto !important; /* Enable clicks when glowing */
+    cursor: pointer !important;
+}
+
+/* Fast staggered delays for cyan light chase wave during replay reset */
+.lever-pulled-active .cabinet-light[data-light-index="0"]  { animation-delay: 0.0s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="1"]  { animation-delay: 0.05s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="2"]  { animation-delay: 0.10s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="3"]  { animation-delay: 0.15s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="4"]  { animation-delay: 0.20s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="5"]  { animation-delay: 0.25s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="6"]  { animation-delay: 0.30s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="7"]  { animation-delay: 0.35s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="8"]  { animation-delay: 0.40s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="9"]  { animation-delay: 0.45s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="10"] { animation-delay: 0.50s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="11"] { animation-delay: 0.55s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="12"] { animation-delay: 0.60s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="13"] { animation-delay: 0.65s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="14"] { animation-delay: 0.70s !important; }
+.lever-pulled-active .cabinet-light[data-light-index="15"] { animation-delay: 0.75s !important; }
+
+/* 13. Guide Tutorial Onboarding Container & Elements */
+.guide-container {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.guide-container.guide-active {
+    display: block;
+}
+
+.guide-coin-wrapper {
+    position: absolute;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+}
+
+/* Slot-specific starting coordinates */
+.guide-container.active-slot-1 .guide-coin-wrapper {
+    left: 312.8px;
+    top: 892.4px;
+    width: 103.5px;
+    height: 101.2px;
+}
+
+.guide-container.active-slot-2 .guide-coin-wrapper {
+    left: 428.3px;
+    top: 886.6px;
+    width: 115.3px;
+    height: 112.7px;
+}
+
+.guide-container.active-slot-3 .guide-coin-wrapper {
+    left: 312.8px;
+    top: 892.4px;
+    width: 103.5px;
+    height: 101.2px;
+}
+
+.coin-guide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+}
+
+.guide-hand {
+    width: 55px;
+    height: 55px;
+    margin-top: -15px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Idle "Let's play! Tap lever." message — sits in the slot row before
+   the lever is first pulled, leaving the slot dividers visible behind it. */
+.idle-slot-message {
+    display: none;
+    position: absolute;
+    top: 454px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 6;
+}
+
+.idle-slot-pill {
+    display: inline-block;
+    padding: 28px 72px;
+    background: linear-gradient(180deg, rgba(15, 8, 35, 0.92), rgba(40, 22, 70, 0.92));
+    border: 3px solid rgba(255, 200, 34, 0.6);
+    border-radius: 110px;
+    box-shadow:
+        0 0 30px rgba(0, 0, 0, 0.55),
+        inset 0 0 20px rgba(255, 200, 34, 0.12);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 96px;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    transform-origin: center center;
+}
+
+/* Pill starts up in the instruction-panel area and falls down to the slot
+   row with a small bounce on landing. Fires on the Let's Play tap. */
+@keyframes pillDropDown {
+    0%   { opacity: 0; transform: translateY(-380px) scale(0.5); }
+    15%  { opacity: 1; transform: translateY(-380px) scale(0.5); }
+    60%  { transform: translateY(0) scale(1); }
+    72%  { transform: translateY(-24px) scale(1.05); }
+    82%  { transform: translateY(0) scale(0.98); }
+    92%  { transform: translateY(-8px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.idle-slot-pill.entering {
+    animation: pillDropDown 1.2s ease-out;
+}
+
+/* Show only during the very first idle (lever glowing, game not yet started).
+   The post-jackpot replay state has both .lever-glow-active AND .game-started,
+   so it is unaffected. */
+.game-container.lever-glow-active:not(.game-started) .idle-slot-message {
+    display: block;
+}
+
+.game-container.lever-glow-active:not(.game-started) .lock-icon {
+    opacity: 0.08;
+}
+
+.game-container.lever-glow-active:not(.game-started) .lock-sparkles {
+    display: none !important;
+}
+
+.game-container.lever-glow-active:not(.game-started) .target-amount-container {
+    visibility: hidden;
+}
+
+
+/* Mobile Rotate Device Suggestion Overlay (dismissable — not a force) */
+.rotate-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* dynamic viewport height — handles iOS bouncy bar */
+    background: linear-gradient(to bottom, rgba(8, 2, 15, 0.96), rgba(24, 4, 36, 0.96));
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+             max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+    box-sizing: border-box;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Once the user dismisses (or rotates), hide it for the rest of the session */
+.rotate-overlay.dismissed {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.rotate-overlay-dismiss {
+    margin-top: 28px;
+    padding: 12px 28px;
+    border: 2px solid rgba(254, 186, 4, 0.6);
+    border-radius: 999px;
+    background: rgba(254, 186, 4, 0.08);
+    color: #FEBA04;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.rotate-overlay-dismiss:hover {
+    background: rgba(254, 186, 4, 0.18);
+    border-color: rgba(254, 186, 4, 1);
+    transform: scale(1.04);
+}
+
+.rotate-overlay-dismiss:active {
+    transform: scale(0.96);
+}
+
+.rotate-overlay .phone-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+    fill: #FEBA04;
+    animation: rotatePhone 2s infinite ease-in-out;
+}
+
+.rotate-overlay h2 {
+    font-size: 36px;
+    margin: 0 0 12px 0;
+    color: #FEBA04;
+    text-shadow: 0 0 12px rgba(254, 186, 4, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.rotate-overlay p {
+    font-size: 20px;
+    margin: 0;
+    opacity: 0.8;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+@keyframes rotatePhone {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Activate overlay only in portrait orientation on screens under 768px width (mobile phones only) */
+@media (orientation: portrait) and (max-width: 767px) {
+    .rotate-overlay {
+        display: flex;
+    }
+}
+
+/* Pre-LBD Intro Landing Screen Styles */
+.prelbd-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    background-image: url('../assets/images/bg2.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1000;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.8s;
+}
+
+.prelbd-container.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.prelbd-logo-wrapper {
+    position: absolute;
+    left: 265px;
+    top: 162px;
+    width: 1185px;
+    height: 531px;
+    overflow: hidden;
+    z-index: 2;
+    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.65));
+}
+
+.prelbd-logo-img {
+    position: absolute;
+    width: 108.47%;
+    height: 161.26%;
+    left: -3.53%;
+    top: -14.65%;
+    object-fit: cover;
+    display: block;
+}
+
+.prelbd-machine-wrapper {
+    position: absolute;
+    left: 1222px;
+    top: 465px;
+    width: 605px;
+    height: 455px;
+    overflow: hidden;
+    z-index: 3;
+    filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.7));
+}
+
+.prelbd-machine-img {
+    position: absolute;
+    width: 129.62%;
+    height: 114.93%;
+    left: -18.65%;
+    top: -4.71%;
+    object-fit: cover;
+    display: block;
+}
+
+.prelbd-play-btn {
+    position: absolute;
+    left: 754px;
+    top: 830px;
+    width: 412px;
+    height: 117px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 4;
+    padding: 0;
+    outline: none;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.25s ease;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+    user-select: none;
+    -webkit-user-drag: none;
+    touch-action: manipulation;
+}
+
+.prelbd-play-btn img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.prelbd-play-btn:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 15px 30px rgba(254, 186, 4, 0.45));
+}
+
+.prelbd-play-btn:active {
+    transform: scale(0.96);
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.8));
+}
+
+
+
+
+
+
+/* ============================================================================
+   FLIPBOOK OVERRIDE — square PLAY button
+   The original is a 412x117 pill at (754,830) in the game's 1920x1080 space.
+   This makes it a larger 210x210 square on the SAME centre (960, 888) with a
+   triangle inside, pulsing until tapped. Delete this block to restore it.
+   ============================================================================ */
+.prelbd-play-btn {
+    left: 865px;                           /* 190px square on the original centre (960, 888) — */
+    top: 793px;                            /* same share of the frame as the button in LBD 1/2 */
+    width: 190px;
+    height: 190px;
+    border-radius: 16%;
+    background: linear-gradient(180deg, #ffe067 0%, #f9c81a 48%, #e5a606 100%);
+    border: 10px solid #3a2a06;                  /* dark keyline, as in the reference */
+    box-sizing: border-box;
+    box-shadow:
+        inset 0 7px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -8px 0 rgba(120, 80, 0, 0.35),
+        0 8px 16px rgba(0, 0, 0, 0.5);
+    filter: none;                          /* the base rule's drop-shadow haloed the square */
+    display: grid;
+    place-items: center;
+    animation: lbdPlayPulse3 1.5s ease-in-out infinite;
+}
+.prelbd-play-btn img { display: none; }    /* the old "LET'S PLAY" pill artwork */
+.prelbd-play-btn::before {                 /* the triangle */
+    content: "";
+    display: block;
+    width: 46%;
+    height: 54%;
+    margin-left: 7%;
+    background: #7a3d00;
+    clip-path: polygon(4% 0%, 100% 50%, 4% 100%);
+}
+.prelbd-play-btn.tapped { animation: none; }
+@keyframes lbdPlayPulse3 {                 /* no translateX here: this one is not centred by transform */
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 12px 26px rgba(0,0,0,0.50), 0 0 0 0 rgba(255,214,64,0.55),
+                    inset 0 6px 0 rgba(255,255,255,0.45), inset 0 -8px 0 rgba(0,0,0,0.18);
+    }
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.50), 0 0 0 20px rgba(255,214,64,0),
+                    inset 0 6px 0 rgba(255,255,255,0.45), inset 0 -8px 0 rgba(0,0,0,0.18);
+    }
+}
+@media (prefers-reduced-motion: reduce) { .prelbd-play-btn { animation: none; } }

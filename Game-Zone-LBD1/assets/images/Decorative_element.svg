@@ -1,0 +1,89 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Pink Glow -->
+    <filter id="glow-pink" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Yellow Glow -->
+    <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Cyan Glow -->
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Blue Glow -->
+    <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <path id="star-pink" d="M50 0L61.2 34.5H97.5L68.2 55.8L79.3 90.3L50 69L20.7 90.3L31.8 55.8L2.5 34.5H38.8L50 0Z" fill="#fb4ea4" filter="url(#glow-pink)"/>
+    <path id="star-yellow" d="M50 0L61.2 34.5H97.5L68.2 55.8L79.3 90.3L50 69L20.7 90.3L31.8 55.8L2.5 34.5H38.8L50 0Z" fill="#ffd600" filter="url(#glow-yellow)"/>
+    <path id="tri-cyan" d="M50 10L90 80H10L50 10Z" fill="none" stroke="#00e5ff" stroke-width="6" filter="url(#glow-cyan)"/>
+    <rect id="rect-blue" width="8" height="8" fill="rgba(3,53,146,0.8)" filter="url(#glow-blue)"/>
+    <rect id="rect-pink" width="8" height="8" fill="#fb4ea4" filter="url(#glow-pink)"/>
+    <rect id="rect-cyan" width="8" height="8" fill="#00e5ff" filter="url(#glow-cyan)"/>
+    <rect id="rect-yellow" width="8" height="8" fill="#ffd600" filter="url(#glow-yellow)"/>
+  </defs>
+
+  <!-- Rectangles (Grid 1) -->
+  <use href="#rect-blue" x="309" y="384" />
+  <use href="#rect-blue" x="327" y="384" />
+  <use href="#rect-blue" x="327" y="366" />
+  <use href="#rect-blue" x="345" y="384" />
+  <use href="#rect-blue" x="309" y="366" />
+  <use href="#rect-blue" x="309" y="348" />
+  <use href="#rect-blue" x="355" y="348" />
+  
+  <!-- Group 2 Rectangles -->
+  <use href="#rect-blue" x="1604" y="258" />
+  <use href="#rect-blue" x="1622" y="258" />
+  <use href="#rect-blue" x="1640" y="258" />
+  <use href="#rect-blue" x="1658" y="258" />
+  <use href="#rect-blue" x="1676" y="258" />
+  <use href="#rect-blue" x="1640" y="276" />
+  <use href="#rect-blue" x="1604" y="276" />
+  
+  <!-- Group 3 Rectangles -->
+  <use href="#rect-blue" x="361" y="765" />
+  <use href="#rect-blue" x="379" y="765" />
+  <use href="#rect-blue" x="397" y="765" />
+  <use href="#rect-blue" x="415" y="765" />
+  <use href="#rect-blue" x="433" y="765" />
+  <use href="#rect-blue" x="451" y="765" />
+  <use href="#rect-blue" x="469" y="765" />
+
+  <!-- Group 4 Rectangles -->
+  <use href="#rect-blue" x="1558" y="540" />
+  <use href="#rect-blue" x="1576" y="540" />
+  <use href="#rect-blue" x="1594" y="540" />
+  <use href="#rect-blue" x="1612" y="540" />
+  <use href="#rect-blue" x="1630" y="540" />
+  <use href="#rect-blue" x="1648" y="540" />
+  <use href="#rect-blue" x="1666" y="540" />
+
+  <!-- Single Rects -->
+  <use href="#rect-pink" x="1570" y="442" />
+  <use href="#rect-pink" x="400" y="720" />
+  <use href="#rect-cyan" x="565" y="412" />
+  <use href="#rect-yellow" x="1382" y="217" />
+  <use href="#rect-yellow" x="1301" y="860" />
+  <use href="#rect-yellow" x="508" y="581" />
+  <use href="#rect-yellow" x="390" y="467" />
+  <use href="#rect-yellow" x="450" y="815" />
+
+  <!-- Stars -->
+  <g transform="translate(424, 208) scale(1)"><use href="#star-pink" /></g>
+  <g transform="translate(1347, 367) scale(0.7)"><use href="#star-yellow" /></g>
+  <g transform="translate(524, 737) scale(0.4)"><use href="#star-yellow" /></g>
+  <g transform="translate(1604, 740) scale(0.2)"><use href="#star-yellow" /></g>
+
+  <!-- Triangles -->
+  <g transform="translate(310, 540) scale(0.7)"><use href="#tri-cyan" /></g>
+  <g transform="translate(1565, 650) scale(0.685) rotate(-30.79 50 50)"><use href="#tri-cyan" /></g>
+  <g transform="translate(1433, 744) scale(0.547) rotate(-59.45 50 50)"><use href="#tri-cyan" /></g>
+</svg>

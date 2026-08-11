@@ -1,0 +1,277 @@
+/* Cinematic level-intro module.
+   Total timeline: 3700ms. All keyframes here; timings driven by animation-delay.
+   GPU-friendly: only transform / opacity / filter are animated. */
+
+.level-intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: radial-gradient(ellipse at center, #0a1b3d 0%, #03060f 60%, #000 100%);
+    font-family: 'Rajdhani', sans-serif;
+    color: #fff;
+    overflow: hidden;
+    opacity: 0;
+    user-select: none;
+    pointer-events: auto;
+    will-change: opacity;
+    animation:
+        li-overlay-in 150ms ease-out 0ms forwards,
+        li-overlay-out 500ms ease-in 3200ms forwards;
+}
+
+@keyframes li-overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes li-overlay-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* Subtle drifting neon-blue grid behind everything */
+.level-intro-grid {
+    position: absolute;
+    inset: -60px;
+    background-image:
+        linear-gradient(rgba(92, 209, 255, 0.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(92, 209, 255, 0.14) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at center, #000 25%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 80%);
+    will-change: background-position;
+    animation: li-grid-drift 14s linear infinite;
+}
+
+@keyframes li-grid-drift {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 56px 56px, 56px 56px; }
+}
+
+/* Stage — holds title, subtitle, byte, shockwave, particles.
+   Shaken briefly on impact. */
+.level-intro-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15em;
+    will-change: transform;
+    animation: li-stage-shake 150ms ease-in-out 1050ms;
+}
+
+@keyframes li-stage-shake {
+    0%   { transform: translate(0, 0); }
+    18%  { transform: translate(-3px, 1px); }
+    36%  { transform: translate(2px, -2px); }
+    54%  { transform: translate(-2px, 2px); }
+    72%  { transform: translate(3px, -1px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* LEVEL N */
+.level-intro-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(48px, 9vw, 140px);
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+    color: #5cd1ff;
+    letter-spacing: 0.025em;
+    text-shadow:
+        0 0 10px #5cd1ff,
+        0 0 22px #5cd1ff,
+        0 0 44px #2090d0,
+        0 0 70px #0066aa;
+    opacity: 0;
+    transform: scale(0.6);
+    will-change: transform, opacity, filter;
+    animation:
+        li-title-in     400ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 200ms forwards,
+        li-title-squash 150ms ease-out 1050ms forwards,
+        li-title-out    400ms ease-in 2000ms forwards;
+}
+
+@keyframes li-title-in {
+    0%   { transform: scale(0.6);  opacity: 0; }
+    60%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1.0);  opacity: 1; }
+}
+
+@keyframes li-title-squash {
+    0%   { transform: scale(1.0,  1.0);  }
+    45%  { transform: scale(1.08, 0.78); }
+    100% { transform: scale(1.0,  1.0);  }
+}
+
+@keyframes li-title-out {
+    0%   { transform: scale(1.0)  translateY(0);     opacity: 1; filter: blur(0); }
+    100% { transform: scale(0.88) translateY(-12px); opacity: 0; filter: blur(4px); }
+}
+
+/* Make ₹N */
+.level-intro-subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(24px, 4.2vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    margin: 0;
+    color: #ffe455;
+    letter-spacing: 0.015em;
+    text-shadow:
+        0 0 8px  #ffe455,
+        0 0 18px #ffaa00,
+        0 0 36px rgba(255, 102, 0, 0.7);
+    opacity: 0;
+    transform: translateY(22px);
+    will-change: transform, opacity;
+    animation:
+        li-subtitle-in  400ms ease-out 500ms  forwards,
+        li-subtitle-out 500ms ease-in  3200ms forwards;
+}
+
+@keyframes li-subtitle-in {
+    0%   { opacity: 0; transform: translateY(22px); }
+    100% { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes li-subtitle-out {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Byte — sprite swaps handled by JS; transforms chain here.
+   transform-origin keeps the bottom edge planted: impact squash compresses
+   downward (weight) instead of lifting Byte off the title. */
+.level-intro-byte {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(80px, 12vw, 160px);
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55));
+    transform: translate(-50%, -180vh) scale(0.92, 1.12);
+    transform-origin: 50% 100%;
+    opacity: 1;
+    will-change: transform, opacity;
+    animation:
+        li-byte-fall    300ms ease-in 750ms forwards,
+        li-byte-impact  120ms ease-out 1050ms forwards,
+        li-byte-recover 150ms cubic-bezier(0.34, 1.56, 0.64, 1) 1170ms forwards,
+        li-byte-settle  200ms ease-out 1320ms forwards,
+        li-byte-out     400ms ease-in 2000ms forwards;
+}
+
+@keyframes li-byte-fall {
+    0%   { transform: translate(-50%, -180vh) scale(0.92, 1.12); opacity: 1; }
+    100% { transform: translate(-50%, -200%)  scale(0.92, 1.12); opacity: 1; }
+}
+
+@keyframes li-byte-impact {
+    0%   { transform: translate(-50%, -200%) scale(0.92, 1.12); }
+    100% { transform: translate(-50%, -200%) scale(1.20, 0.82); }
+}
+
+@keyframes li-byte-recover {
+    0%   { transform: translate(-50%, -200%) scale(1.20, 0.82); }
+    60%  { transform: translate(-50%, -235%) scale(1, 1); }
+    100% { transform: translate(-50%, -210%) scale(1, 1); }
+}
+
+@keyframes li-byte-settle {
+    0%   { transform: translate(-50%, -210%) scale(1, 1); }
+    100% { transform: translate(-50%, -200%) scale(1, 1); }
+}
+
+@keyframes li-byte-out {
+    0%   { transform: translate(-50%, -200%) scale(1, 1);       opacity: 1; }
+    100% { transform: translate(-50%, -230%) scale(0.85, 0.85); opacity: 0; }
+}
+
+/* Shockwave — single expanding ring from the impact point.
+   Vertically offset by roughly 0.65 * byte-height to align with Byte's center. */
+.level-intro-shockwave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(60px, 9vw, 120px);
+    height: clamp(60px, 9vw, 120px);
+    margin-top: calc(-1 * clamp(52px, 7.8vw, 104px));
+    border-radius: 50%;
+    border: 3px solid #5cd1ff;
+    box-shadow:
+        0 0 30px #5cd1ff,
+        0 0 60px rgba(92, 209, 255, 0.5);
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: li-shockwave 700ms ease-out 1050ms forwards;
+}
+
+@keyframes li-shockwave {
+    0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 1; border-width: 4px; }
+    100% { transform: translate(-50%, -50%) scale(14);  opacity: 0; border-width: 1px; }
+}
+
+/* Particles — anchor positioned at the impact point;
+   each particle uses --px/--py/--delay from JS. */
+.level-intro-particles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: calc(-1 * clamp(52px, 7.8vw, 104px));
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.level-intro-particle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: #aee9ff;
+    box-shadow:
+        0 0 12px #5cd1ff,
+        0 0 24px rgba(92, 209, 255, 0.6);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: li-particle 600ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    animation-delay: calc(1050ms + var(--delay, 0ms));
+}
+
+@keyframes li-particle {
+    0% {
+        transform: translate(0, 0) scale(0.3);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(var(--px, 0px), var(--py, 0px)) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(calc(var(--px, 0px) * 1.2), calc(var(--py, 0px) * 1.2)) scale(0.2);
+        opacity: 0;
+    }
+}
+
+/* Reduced motion: collapse every animation to ~0ms so the screen jumps to its final state. */
+@media (prefers-reduced-motion: reduce) {
+    .level-intro-overlay,
+    .level-intro-overlay *,
+    .level-intro-overlay *::before,
+    .level-intro-overlay *::after {
+        animation-duration: 1ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: 1ms !important;
+    }
+}
