@@ -1024,6 +1024,11 @@
      and then the game painted its title screen, so the cover appeared twice. */
   .lbd-stage.visible { visibility: visible; pointer-events: auto; }
   .lbd-stage.visible.ready { opacity: 1; }
+  /* .inert = the game has reported it is FINISHED. It stays fully visible (its end
+     screen is the page), but stops taking pointer events so the press falls through
+     to #flipbook underneath and the reader can swipe/drag the corner to turn the
+     page — not just tap the arrows. Cleared on leaving or reloading the activity. */
+  .lbd-stage.inert { pointer-events: none; }
   #lbdFrame {
     position: absolute; inset: 0; width: 100%; height: 100%;
     border: 0; display: block; background: #0a0f2d;

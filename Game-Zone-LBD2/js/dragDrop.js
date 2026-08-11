@@ -677,21 +677,33 @@ export function initDragDrop() {
 
                                 // Show the cheer, then return to the start screen
                                 setTimeout(() => {
+                                    const embedded = window.parent !== window;
+
                                     // FINISHED — told to the flipbook HERE, after the
                                     // ball has been tapped and gone in and the cheer has
-                                    // played. The book turns to the next story page, so
-                                    // the reader never sees the "Play again" screen.
+                                    // played.
                                     try {
-                                        if (window.parent !== window) {
+                                        if (embedded) {
                                             window.parent.postMessage({ source: 'lbd', type: 'lbd-complete' }, '*');
                                         }
                                     } catch (_) {}
 
+                                    if (embedded) {
+                                        // Inside the book the reader STAYS on this page and turns
+                                        // it themselves, so the Basket Blast reward screen is the
+                                        // end screen — leave it up. (The reset below assumed the
+                                        // book auto-turned the page; it does not, so the title /
+                                        // "Play again" screen was reappearing on the page.)
+                                        clearTimeout(inactivityTimer);
+                                        clearLiveGhosts();
+                                        stopRemoveTutorial();
+                                        return;
+                                    }
+
                                     // Silently reset to level 1 while the reward
                                     // screen still covers everything, so "Play
                                     // again" starts a clean run through the
-                                    // level-1 cinematic intro. (Standalone only —
-                                    // inside the book we have already left.)
+                                    // level-1 cinematic intro.
                                     loadLevel(1);
                                     clearTimeout(inactivityTimer); // no idle hints on the start screen
                                     clearLiveGhosts();

@@ -820,23 +820,33 @@ export function initDragDrop() {
                         playVO('allDone');
 
                         setTimeout(() => {
-                            overlay.classList.add('hidden');
-                            uiLayer.classList.remove('level-fade');
+                            const embedded = window.parent !== window;
 
                             // FINISHED — told to the flipbook HERE, after the
-                            // "All Levels Done." card, not before it. The book then
-                            // turns to the next story page, so the reader never lands
-                            // back on this game's title / "Play again" screen.
+                            // "All Levels Done." card, not before it.
                             try {
-                                if (window.parent !== window) {
+                                if (embedded) {
                                     window.parent.postMessage({ source: 'lbd', type: 'lbd-complete' }, '*');
                                 }
                             } catch (_) {}
 
+                            if (embedded) {
+                                // Inside the book the reader STAYS on this page and turns it
+                                // themselves, so "All Levels Done." is the end screen — leave it
+                                // up. (This used to fall through to the reset below on the
+                                // assumption that the book auto-turned the page; it does not, so
+                                // the activity's title / "Play again" screen was reappearing as
+                                // the last thing the reader saw.)
+                                clearTimeout(idleTimer);
+                                return;
+                            }
+
+                            overlay.classList.add('hidden');
+                            uiLayer.classList.remove('level-fade');
+
                             // Swap the button image FIRST (while screen-0 is still
                             // hidden), then reveal screen-0. The preload below
                             // guarantees the swap is instant from cache.
-                            // (Standalone only — inside the book we have already left.)
                             if (screen0 && playBtnImg) {
                                 playBtnImg.src = 'assets/images/Play_again_BTN.svg';
                                 screen0.classList.remove('hidden');

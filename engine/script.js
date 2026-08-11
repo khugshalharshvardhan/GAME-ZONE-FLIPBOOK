@@ -382,6 +382,14 @@ window.addEventListener("message", function (e) {
     const at = flipped;
     setLbdFullscreen(false);               // finished → shrink back into the book
     lbdDone.add(at);
+    // Hand the POINTER back to the book. The overlay is a body-level fixed layer at
+    // z600, so while it is live it sits above #flipbook (which owns the corner-drag
+    // listeners) and swallows every press on the page — swipe/drag-to-turn was dead
+    // on a finished activity, leaving the z700 corner arrows as the only way on even
+    // though the nudge hand was miming a swipe. The game is over, so nothing inside
+    // the iframe still needs the pointer. Reset on leaving / reloading (see
+    // updateLbdOverlay) so replaying the activity is interactive again.
+    lbdStage.classList.add("inert");
     // The page is NOT turned for the reader. dialogueDone() reveals both arrows and
     // starts the nudge, so the game's "all levels done" screen stays up with the
     // arrow blinking and the hand swiping until the reader chooses to move on.
@@ -453,6 +461,7 @@ function updateLbdOverlay() {
     positionLbdStage();
     if (lbdLoadedSrc !== page.src) {        // load once per visit, not on every refresh
       lbdStage.classList.remove("ready");   // stay transparent until the game has painted
+      lbdStage.classList.remove("inert");   // a freshly loaded game needs the pointer again
       clearTimeout(lbdReadyTimer);
       // The leaf's poster IS the game's title screen, so holding the overlay
       // invisible until 'load' makes the handoff a straight swap of identical
@@ -467,7 +476,7 @@ function updateLbdOverlay() {
     lbdStage.classList.add("visible");
     lbdStage.setAttribute("aria-hidden", "false");
   } else {
-    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph");
+    lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert");
     lbdStage.setAttribute("aria-hidden", "true");
     lbdFullscreen = false;                  // next visit starts page-sized again
     clearTimeout(lbdReadyTimer);

@@ -465,20 +465,28 @@ function triggerJackpotCelebration(instruction) {
         playVO('jackpot');
     }, 4600);
 
-    // After "You have hit the JACKPOT" has been on screen for 5s, swap its
-    // text to the replay prompt — the popup stays visible. The top panel is
+    // After "You have hit the JACKPOT" has been on screen for 5s, tell the flipbook
+    // we are done and — WHEN RUNNING STANDALONE — swap the popup's text to the replay
+    // prompt (the popup itself stays visible either way). The top panel is
     // intentionally left alone (no "Tap lever. Play Again!" at the top).
     setTimeout(() => {
+        const embedded = window.parent !== window;
+
         // FINISHED — the jackpot celebration has run its full course (reels, confetti,
         // "You have hit the JACKPOT" and its voice-over). Only now is the flipbook told,
         // so the game stays full screen throughout the celebration instead of shrinking
-        // away the moment the last round was solved. The book then turns to the next
-        // story page, so the "Tap lever / Play Again" prompt below is standalone-only.
+        // away the moment the last round was solved.
         try {
-            if (window.parent !== window) {
+            if (embedded) {
                 window.parent.postMessage({ source: 'lbd', type: 'lbd-complete' }, '*');
             }
         } catch (_) {}
+
+        // The "Tap lever / Play Again" prompt is STANDALONE-ONLY. Inside the book the
+        // reader stays on this page and turns it themselves, so inviting another spin
+        // here would loop them back into the activity instead of on with the story —
+        // the popup keeps "You have hit the JACKPOT" as the end screen.
+        if (embedded) return;
 
         swapJackpotPopupToReplay();
         if (gameContainer) {
