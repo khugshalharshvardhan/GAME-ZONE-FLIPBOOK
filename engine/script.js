@@ -1440,6 +1440,7 @@ function turnLeaf(leaf) {                 // shared flip visuals + timing
 function goNext() {
   if (!opened || !ready || animating) return;   // wait until the cover has fully opened
   if (hintDoneFor !== flipped) return;           // scenes/dialogue still playing → no turning
+  if (activityInProgress()) return;              // same lock as goPrev / the corner arrows
   if (flipped >= totalPages - 1) return;         // already on the LAST page (THE END)
   animating = true;
   const leaf = leaves[flipped];                  // the page to turn
@@ -1449,10 +1450,26 @@ function goNext() {
 function goPrev() {
   if (!opened || !ready || animating) return;   // wait until the cover has fully opened
   if (flipped <= 0) return;               // already on the first page
+  // An unfinished ACTIVITY hides its Back arrow, but ArrowLeft used to bypass that and
+  // turn the page anyway — walking the reader out of a half-played game and silently
+  // discarding their progress. Honour the same lock the arrow does.
+  if (activityInProgress()) return;
   // (going BACK is allowed even while a scene is playing — only forward waits)
   animating = true;
   flipped--;
   turnLeaf(leaves[flipped]);
+}
+
+/* Is the reader in the middle of an ACTIVITY that has not been finished yet? While
+   that is true the game owns the screen and the book must not turn: both corner arrows
+   are hidden (below) and every navigation path has to honour the same rule, or the
+   reader can leave a game half-played and silently lose their progress.
+   Not locked once the game reports finished, nor on a page the reader has already been
+   past — going back through the book must never be blocked by an old activity. */
+function activityInProgress() {
+  const page = pages[flipped];
+  if (!page || page.type !== "lbd") return false;
+  return !lbdDone.has(flipped) && flipped >= maxReached;
 }
 
 /* ---- Nav state (the "Page X / N" counter has been removed) --------------- */
@@ -1468,8 +1485,7 @@ function updateProgress() {
   //   so the game owns the screen; they appear together once it reports finished
   //   (or immediately if the reader has already been past it).
   const dlgDone = hintDoneFor === flipped;
-  const onLbdPage = pages[flipped] && pages[flipped].type === "lbd";
-  const lbdFinished = !onLbdPage || lbdDone.has(flipped) || flipped < maxReached;
+  const lbdFinished = !activityInProgress();
   const showPrev = opened && ready && flipped > 0 && lbdFinished;
   const showNext = opened && ready && dlgDone && lbdFinished && flipped < totalPages - 1;
   if (cornerPrev) {
@@ -2123,8 +2139,7 @@ function canShowHint() {
   // owns the screen, and the arrows are hidden anyway) — but once the game reports
   // it is finished, the nudge runs on its "all levels done" screen to point the
   // reader onward.
-  const onLbdPage = pages[flipped] && pages[flipped].type === "lbd";
-  if (onLbdPage && !lbdDone.has(flipped) && flipped >= maxReached) return false;
+  if (activityInProgress()) return false;
   return opened && ready && !animating &&
          hintDoneFor === flipped &&          // never before the scene completes
          flipped < totalPages - 1 && !document.hidden;
