@@ -314,6 +314,32 @@
   <iframe id="lbdFrame" title="Game Zone activity" allow="autoplay; fullscreen"></iframe>
 </div>
 
+<!-- ACTIVITY PROGRESS NOTICES — both sit ABOVE the game overlay (z600) and the
+     corner arrows (z700), because both are about the game the reader is looking at.
+
+     #leaveConfirm : asked before turning the page out of an activity the reader has
+                     started but not finished. Leaving unloads the game, which resets
+                     it to level 1, so this is the reader's only warning that their
+                     progress is about to go. Buttons are wired in script.js.
+     #replayNotice : a brief, non-blocking line shown when landing on an activity the
+                     reader has already played, so a fresh title screen is not mistaken
+                     for continuing where they left off. -->
+<div class="leave-confirm" id="leaveConfirm" aria-hidden="true" role="dialog"
+     aria-modal="true" aria-labelledby="leaveConfirmTitle">
+  <div class="leave-confirm-card">
+    <div class="leave-confirm-title" id="leaveConfirmTitle">Leave this activity?</div>
+    <div class="leave-confirm-body">You&rsquo;ll start it from the beginning next time.</div>
+    <div class="leave-confirm-actions">
+      <button class="lc-btn lc-stay" id="leaveStay"  type="button">Stay</button>
+      <button class="lc-btn lc-go"   id="leaveGo"    type="button">Leave</button>
+    </div>
+  </div>
+</div>
+
+<div class="replay-notice" id="replayNotice" aria-hidden="true" role="status">
+  <span>Starting from the beginning</span>
+</div>
+
 <!-- Flip arrows OUTSIDE the book, fixed at the viewport's bottom corners
      (bottom-left = back, bottom-right = forward). -->
 <button class="corner-arrow back" id="cornerPrev" aria-label="Previous page">

@@ -1039,6 +1039,82 @@
      corner exactly like every other page, with no transform of its own. The clip is
      applied and cleared entirely from script.js — there is no rule for it here. */
 
+  /* ==========================================================================
+     ACTIVITY PROGRESS NOTICES  —  the leave-confirmation and the replay line.
+     Both sit at z800+: above the game overlay (z600) AND the corner arrows (z700),
+     since both speak about the activity currently on screen. Dressed in the book's
+     own night-and-gold palette so they read as part of the storybook rather than as
+     browser chrome.
+     ========================================================================== */
+  .leave-confirm {
+    position: fixed; inset: 0; z-index: 820;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background: rgba(7, 10, 30, 0.62);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+  .leave-confirm.show { opacity: 1; visibility: visible; pointer-events: auto; }
+  .leave-confirm-card {
+    width: min(92vw, 460px);
+    background: linear-gradient(160deg, #2b3466, #1b2247 62%, #141a3c);
+    border: 1.5px solid rgba(244, 214, 127, 0.42);
+    border-radius: 14px;
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.62);
+    padding: clamp(22px, 4vw, 32px) clamp(20px, 4vw, 34px);
+    text-align: center;
+    transform: translateY(10px) scale(0.97);
+    transition: transform 260ms cubic-bezier(0.2, 0.9, 0.24, 1);
+  }
+  .leave-confirm.show .leave-confirm-card { transform: none; }
+  .leave-confirm-title {
+    font-family: "Fredoka", "Fredoka One", system-ui, sans-serif;
+    font-size: clamp(20px, 3.6vw, 27px);
+    color: #f6df8c; margin-bottom: 10px; line-height: 1.15;
+  }
+  .leave-confirm-body {
+    font-family: "Poppins", system-ui, sans-serif;
+    font-size: clamp(13px, 2.4vw, 16px);
+    color: #cfd6f5; line-height: 1.45;
+    margin-bottom: clamp(18px, 3vw, 24px);
+  }
+  .leave-confirm-actions {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
+  .lc-btn {
+    font-family: "Poppins", system-ui, sans-serif;
+    font-size: clamp(13px, 2.3vw, 15px); font-weight: 600;
+    padding: 11px 26px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: transform 140ms ease, filter 140ms ease;
+  }
+  .lc-btn:hover  { transform: translateY(-1px); filter: brightness(1.08); }
+  .lc-btn:active { transform: translateY(0); }
+  /* STAY is the safe default, so it carries the gold — the eye lands on it first. */
+  .lc-stay { background: linear-gradient(#f6cf6a, #e0a92c); color: #4a2f05; }
+  .lc-go   { background: rgba(255, 255, 255, 0.07); color: #dfe4fb;
+             border-color: rgba(223, 228, 251, 0.34); }
+
+  /* Non-blocking replay line — floats near the top of the activity and fades out. */
+  .replay-notice {
+    position: fixed; z-index: 800; left: 50%; top: 5%;
+    transform: translate(-50%, -12px);
+    padding: 10px 20px; border-radius: 999px;
+    background: rgba(20, 26, 60, 0.92);
+    border: 1px solid rgba(244, 214, 127, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    font-family: "Poppins", system-ui, sans-serif;
+    font-size: clamp(12px, 2.2vw, 15px); color: #f6df8c; white-space: nowrap;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 300ms ease, transform 300ms cubic-bezier(0.2, 0.9, 0.24, 1);
+  }
+  .replay-notice.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .leave-confirm, .leave-confirm-card, .replay-notice { transition: none; }
+    .leave-confirm-card { transform: none; }
+  }
+
   /* A FINISHED activity whose story gave no `endPoster`: drop the leaf's stale
      title-screen art so the page turns away as bare paper instead of showing the
      game's title screen one last time. Swapped in under the still-opaque overlay

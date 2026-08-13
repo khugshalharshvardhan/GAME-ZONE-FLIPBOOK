@@ -357,6 +357,17 @@ const lbdFrame = document.getElementById("lbdFrame");
 let lbdLoadedSrc = null;                   // which game is currently in the iframe
 let lbdReadyTimer = null;                  // fallback reveal if the iframe never fires 'load'
 const lbdDone = new Set();                 // activity pages whose game has been finished
+/* Leaving an activity unloads the iframe, which resets that game to its level 1 — so
+   the book has to be honest about progress in two places (BUG_02 / BUG_03):
+     lbdStarted — activities the reader has actually begun playing at least once. On a
+                  later visit the game boots at its title screen again, so a page in
+                  this set means "this is a fresh run", not "carry on where you were",
+                  and the replay notice says so.
+     lbdPlaying — a game is being played RIGHT NOW and has not reported finished.
+                  Turning the page in this state throws the run away, so navigation
+                  asks first instead of doing it silently. */
+const lbdStarted = new Set();
+let lbdPlaying = false;
 
 // The iframe finished loading → fade the live game in over its matching poster.
 function onLbdFrameLoad() {
@@ -364,6 +375,9 @@ function onLbdFrameLoad() {
   clearTimeout(lbdReadyTimer);
   if (lbdFrame.getAttribute("src") === "about:blank") return;   // the unload, not a game
   lbdStage.classList.add("ready");
+  // The game has booted at its own title screen. If the reader has played this activity
+  // before, that screen is NOT where they left off — the unload reset it — so say so.
+  if (lbdStarted.has(flipped)) showReplayNotice();
 }
 
 /* The games tell the book when they are finished by posting
@@ -378,10 +392,14 @@ window.addEventListener("message", function (e) {
   if (!page || page.type !== "lbd") return;
   if (d.type === "lbd-start") {
     setLbdFullscreen(true);                // reader tapped PLAY → give it the screen
+    lbdStarted.add(flipped);               // a later visit to this page is a REPLAY
+    lbdPlaying = true;                     // …and leaving now would throw the run away
+    hideReplayNotice();                    // they're playing; the notice has done its job
   } else if (d.type === "lbd-complete") {
     const at = flipped;
     setLbdFullscreen(false);               // finished → shrink back into the book
     lbdDone.add(at);
+    lbdPlaying = false;                    // finished → nothing left to lose, no warning
     // Hand the POINTER back to the book. The overlay is a body-level fixed layer at
     // z600, so while it is live it sits above #flipbook (which owns the corner-drag
     // listeners) and swallows every press on the page — swipe/drag-to-turn was dead
@@ -398,6 +416,64 @@ window.addEventListener("message", function (e) {
     dialogueDone(at);
     updateProgress();
   }
+});
+
+/* ==========================================================================
+   ACTIVITY PROGRESS NOTICES (BUG_02 / BUG_03)
+   Leaving an activity page unloads its iframe, and that resets the game to level 1.
+   Nothing used to say so, which left two blind spots: coming back to a game looked
+   identical to continuing it, and turning the page mid-game binned the run without a
+   word. These two pieces of UI close both.
+   ========================================================================== */
+const leaveConfirmEl = document.getElementById("leaveConfirm");
+const leaveStayBtn   = document.getElementById("leaveStay");
+const leaveGoBtn     = document.getElementById("leaveGo");
+const replayNoticeEl = document.getElementById("replayNotice");
+let replayNoticeTimer = null;
+let pendingLeave = null;        // the navigation to run if the reader confirms
+
+const REPLAY_NOTICE_MS = 2800;
+
+function showReplayNotice() {
+  if (!replayNoticeEl) return;
+  clearTimeout(replayNoticeTimer);
+  replayNoticeEl.classList.add("show");
+  replayNoticeEl.setAttribute("aria-hidden", "false");
+  replayNoticeTimer = setTimeout(hideReplayNotice, REPLAY_NOTICE_MS);
+}
+function hideReplayNotice() {
+  if (!replayNoticeEl) return;
+  clearTimeout(replayNoticeTimer);
+  replayNoticeEl.classList.remove("show");
+  replayNoticeEl.setAttribute("aria-hidden", "true");
+}
+
+function leaveConfirmOpen() {
+  return !!(leaveConfirmEl && leaveConfirmEl.classList.contains("show"));
+}
+/* Ask before a navigation that would discard a run in progress. `go` is the actual
+   turn to perform if the reader says Leave. */
+function askBeforeLeaving(go) {
+  if (!leaveConfirmEl) { go(); return; }     // no markup → never trap the reader
+  pendingLeave = go;
+  leaveConfirmEl.classList.add("show");
+  leaveConfirmEl.setAttribute("aria-hidden", "false");
+  if (leaveStayBtn) leaveStayBtn.focus();
+}
+function closeLeaveConfirm() {
+  pendingLeave = null;
+  if (!leaveConfirmEl) return;
+  leaveConfirmEl.classList.remove("show");
+  leaveConfirmEl.setAttribute("aria-hidden", "true");
+}
+if (leaveStayBtn) leaveStayBtn.addEventListener("click", closeLeaveConfirm);
+if (leaveGoBtn) leaveGoBtn.addEventListener("click", function () {
+  const go = pendingLeave;
+  closeLeaveConfirm();
+  // The run is being abandoned by choice, so drop the "playing" flag first —
+  // otherwise the turn would immediately ask again.
+  lbdPlaying = false;
+  if (go) go();
 });
 
 /* ---- The activity leaf's art, before vs. after the game is finished ---------
@@ -516,7 +592,10 @@ function updateLbdOverlay() {
       lbdFrame.addEventListener("load", onLbdFrameLoad);
       // Safety net: if 'load' never fires (a stalled asset), show it anyway
       // rather than leaving the reader on a dead poster.
-      lbdReadyTimer = setTimeout(function () { lbdStage.classList.add("ready"); }, 4000);
+      lbdReadyTimer = setTimeout(function () {
+        lbdStage.classList.add("ready");
+        if (lbdStarted.has(flipped)) showReplayNotice();   // same cue as the load path
+      }, 4000);
       lbdFrame.src = page.src;
       lbdLoadedSrc = page.src;
     }
@@ -525,6 +604,10 @@ function updateLbdOverlay() {
   } else {
     lbdStage.classList.remove("visible", "ready", "fullscreen", "lbd-morph", "inert");
     clearLbdPeelClip();                     // never leave a peel clip on a hidden stage
+    // We are off the activity: the run (if any) is over and both notices are stale.
+    lbdPlaying = false;
+    hideReplayNotice();
+    closeLeaveConfirm();
     lbdStage.setAttribute("aria-hidden", "true");
     lbdFullscreen = false;                  // next visit starts page-sized again
     clearTimeout(lbdReadyTimer);
@@ -1439,9 +1522,11 @@ function turnLeaf(leaf) {                 // shared flip visuals + timing
 }
 function goNext() {
   if (!opened || !ready || animating) return;   // wait until the cover has fully opened
+  if (leaveConfirmOpen()) return;                // the reader is answering the prompt
   if (hintDoneFor !== flipped) return;           // scenes/dialogue still playing → no turning
   if (activityInProgress()) return;              // same lock as goPrev / the corner arrows
   if (flipped >= totalPages - 1) return;         // already on the LAST page (THE END)
+  if (lbdPlaying) { askBeforeLeaving(goNext); return; }   // a run is live → warn first
   animating = true;
   const leaf = leaves[flipped];                  // the page to turn
   flipped++;
@@ -1454,6 +1539,8 @@ function goPrev() {
   // turn the page anyway — walking the reader out of a half-played game and silently
   // discarding their progress. Honour the same lock the arrow does.
   if (activityInProgress()) return;
+  if (leaveConfirmOpen()) return;                // the reader is answering the prompt
+  if (lbdPlaying) { askBeforeLeaving(goPrev); return; }   // a run is live → warn first
   // (going BACK is allowed even while a scene is playing — only forward waits)
   animating = true;
   flipped--;
@@ -1573,6 +1660,10 @@ function resetToStart() {
   animating = false;          // never carry a stuck flip-lock into the next read
   maxReached = 0;             // a fresh read re-gates NEXT on every page's video
   lbdDone.clear();            // …and the activities must be played again
+  lbdStarted.clear();         // a fresh read: no activity counts as "replayed" yet
+  lbdPlaying = false;
+  hideReplayNotice();
+  closeLeaveConfirm();
   restoreSpentLbdLeaves(-1);  // every activity leaf shows its title screen again
   updateLbdOverlay();         // back at the cover → hide + unload any running game
   renderLeaves();
@@ -1834,6 +1925,13 @@ if (replayBtn) replayBtn.addEventListener("click", function (e) { e.stopPropagat
 })();
 
 window.addEventListener("keydown", function (e) {
+  // While the leave prompt is up it owns the keyboard: Escape is the safe answer
+  // (stay), and the arrows must not navigate underneath the question.
+  if (leaveConfirmOpen()) {
+    if (e.key === "Escape") { e.preventDefault(); closeLeaveConfirm(); }
+    else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); }
+    return;
+  }
   if (e.key === "ArrowRight") { e.preventDefault(); opened ? goNext() : openBook(); }
   else if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
   else if ((e.key === " " || e.key === "Enter") && !opened) { e.preventDefault(); openBook(); }
