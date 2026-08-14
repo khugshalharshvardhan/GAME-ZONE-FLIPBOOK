@@ -205,33 +205,15 @@
   .corner-arrow svg  { width: 58%; height: 58%; }
   .corner-arrow.back svg { transform: scaleX(-1); }   /* mirror the forward arrow */
 
-  /* ---- Page-turn hint (hand on the RIGHT side of the book) -------------------
-     Guidance for HOW to turn the page: a 3D hand on the book's right edge does a
-     right-to-left SWIPE, shown together with the "ghost" page-flip. JS positions
-     it against the book's right side (see positionFlipHint) and toggles .show.
-     Optional art at engine/hand-nudge.png; until then an emoji hand is used. */
-  .flip-hint {
-    position: fixed; z-index: 720; pointer-events: none;
-    width: clamp(56px, 7vw, 104px); height: auto;
-    opacity: 0; visibility: hidden;
-    filter: drop-shadow(0 6px 11px rgba(0,0,0,0.5));
-    transition: opacity 320ms ease;
-    will-change: transform;
-  }
-  /* inline-SVG hand fallback (used when engine/hand-nudge.png isn't present) */
-  .flip-hint--svg { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6)); }
-  .flip-hint svg  { display: block; width: 100%; height: auto; }
-  .flip-hint.show { opacity: 0.96; visibility: visible;
-                    animation: flipHintSwipe 1.5s cubic-bezier(0.4,0,0.2,1) infinite; }
-  /* swipe right-to-left, echoing the page-turn the ghost flip demonstrates */
-  @keyframes flipHintSwipe {
-    0%   { transform: translateX(18px)  rotate(9deg)  scale(1);    }
-    45%  { transform: translateX(-34px) rotate(-6deg) scale(0.92); }
-    72%  { transform: translateX(-34px) rotate(-6deg) scale(0.92); }
-    100% { transform: translateX(18px)  rotate(9deg)  scale(1);    }
-  }
+  /* ---- Page-turn hint --------------------------------------------------------
+     The swiping HAND that used to sit on the book's right edge has been REMOVED: the
+     book has explicit Forward / Backward arrow buttons, so miming a swipe over them
+     was redundant, and it advertised a gesture the arrows already cover. The nudge is
+     now just the corner page-peel (driven from script.js — the page itself showing
+     that it turns) plus the gold blink on the forward arrow below. */
+
   /* The RIGHT (forward) arrow blinks + glows GOLD while the nudge is playing —
-     "no need to swipe, this button turns the page too". */
+     "this button turns the page". */
   .corner-arrow.blink { animation: arrowBlink 0.7s ease-in-out infinite; }
   @keyframes arrowBlink {
     0%, 100% { opacity: 0.35; transform: scale(1);
@@ -240,7 +222,7 @@
                filter: drop-shadow(0 2px 7px rgba(0,0,0,0.55)) drop-shadow(0 0 16px rgba(246,184,30,0.95)); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .flip-hint.show, .corner-arrow.blink { animation: none; }
+    .corner-arrow.blink { animation: none; }
   }
 
   /* ==========================================================================

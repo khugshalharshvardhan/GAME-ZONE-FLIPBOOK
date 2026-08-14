@@ -1060,8 +1060,6 @@ function fitScale() {
     rs.setProperty("--back-x",  Math.round(Math.max(cornerL - btn / 2, saL + 2)) + "px");
     rs.setProperty("--fwd-x",   Math.round(Math.min(cornerR - btn / 2, iw - saR - btn - 2)) + "px");
   }
-  // keep the page-turn hint glued to the forward arrow when the viewport changes
-  if (flipHint && flipHint.classList.contains("show")) positionFlipHint();
 }
 
 /* ---- Render / stacking for the CSS leaf flip ---------------------------- */
@@ -1708,7 +1706,7 @@ function resetToStart() {
   flipbookEl.style.pointerEvents = "none";
   bookFloat.classList.remove("rest");          // resume the idle bob
   tapCatcher.style.pointerEvents = "auto";     // Play is tappable again
-  hideFlipHint(); clearTimeout(idleHintTimer); clearTimeout(nudgeHideTimer);
+  cancelPeek(); clearTimeout(idleHintTimer); clearTimeout(nudgeHideTimer);
   try { bgMusic.pause(); bgMusic.currentTime = 0; } catch (_) {}   // stop music; restarts on Play
   updateProgress();                            // re-sync nav state (arrows greyed)
 }
@@ -1720,7 +1718,7 @@ function closeBookToCover(afterReset) {
   ready = false;                               // block flips during the close
   clearTimeout(_openTimer);
   clearTimeout(_homeTimer);
-  hideFlipHint(); cancelPeek(); clearTimeout(idleHintTimer); clearTimeout(nudgeHideTimer);
+  cancelPeek(); clearTimeout(idleHintTimer); clearTimeout(nudgeHideTimer);
   if (cornerNext) cornerNext.classList.remove("blink");
   var v = currentVideo(); if (v) { try { v.pause(); } catch (_) {} }
   flipbookEl.style.pointerEvents = "none";
@@ -2190,47 +2188,22 @@ function soundOn() {
    Timing: PAGE 1 after 5s, every later page after 10s of no interaction; repeats
    while idle and is cancelled by any tap / key / flip. Never on the last page.
    ========================================================================== */
-// The nudge is a HAND on the RIGHT side of the book. Optional engine art at
-// engine/hand-nudge.png is used if present; until it exists, an emoji hand
-// stands in (the <img> error handler swaps to it).
-let flipHint = document.createElement("img");
-flipHint.className = "flip-hint";
-flipHint.setAttribute("aria-hidden", "true");
-flipHint.alt = "";
-flipHint.decoding = "async";
-flipHint.src = "engine/hand-nudge.png";
-flipHint.addEventListener("error", function () {
-  const el = document.createElement("div");
-  el.className = "flip-hint flip-hint--svg";
-  el.setAttribute("aria-hidden", "true");
-  el.innerHTML =
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffffff" ' +
-    'd="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 ' +
-    '2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 ' +
-    '4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6C13 6.67 12.33 6 11.5 6S10 ' +
-    '6.67 10 7.5v10.74l-3.44-.72c-.37-.08-.76.04-1.02.31l-1.04 1.05 5.19 ' +
-    '5.19c.28.28.66.44 1.06.44h6.78c.75 0 1.38-.55 1.49-1.29l.77-5.44c.1-.72-.29-1.42-.95-1.71z"/></svg>';
-  if (flipHint.parentNode) flipHint.parentNode.replaceChild(el, flipHint);
-  flipHint = el;                 // later show/position calls use the swapped-in element
-}, { once: true });
-document.body.appendChild(flipHint);
+/* The swiping HAND was REMOVED. The book has explicit Forward / Backward arrow
+   buttons, so miming a swipe on top of them was redundant guidance — and it pointed at
+   a gesture the arrows already cover. What remains of the nudge is the affordance that
+   the arrows cannot express on their own: the corner page-peel (the page itself
+   demonstrating that it turns) and the forward arrow's gold blink. */
 
 // Guidance timing: the nudge NEVER interrupts a scene — it appears only after
 // the page's dialogue/scene sequence has fully finished (dialogueDone below),
 // waits HINT_AFTER_DONE_MS more, then plays. It repeats every NUDGE_GAP_MS
 // until the reader turns the page; any interaction resets it.
-const HINT_AFTER_DONE_MS = 0;     // 0 = the hand appears WITH the arrow, the instant
+const HINT_AFTER_DONE_MS = 0;     // 0 = the cue appears WITH the arrow, the instant
                                   // the page's video ends (no waiting period)
-const HINT_SWIPE_MS  = 1500;      // the hand's swipe loop — keep in sync with the
-                                  // flipHintSwipe animation duration in styles.css
-const PEEK_REPEAT_MS = HINT_SWIPE_MS + 20;  // one nudge beat: the page-lift and the hand
-                                  // are BOTH (re)started at the top of every beat so they
-                                  // move as one gesture. They used to run on separate
-                                  // clocks — a 1.5s CSS loop against a 3.6s replay — which
-                                  // put them permanently out of phase after the first pass.
-                                  // The 20ms of slack lands while both sit at rest (the
-                                  // swipe's 0% and 100% keyframes are the same transform),
-                                  // so the restart is never visible.
+const PEEK_REPEAT_MS = 1520;      // one nudge beat. The peel tween itself runs 1.5s
+                                  // (rise 0.675s, hold 0.405s, fall 0.42s), so the 20ms
+                                  // of slack lands with the page flat and the restart is
+                                  // never visible.
 const HINT_RESUME_MS = 2500;      // if a tap did NOT turn the page, bring the nudge
                                   // back after this long (not instantly, or it flickers)
 const NUDGE_GAP_MS  = 9000;    // retry gap while the nudge is not allowed to show yet
@@ -2260,36 +2233,6 @@ function canShowHint() {
   return opened && ready && !animating &&
          hintDoneFor === flipped &&          // never before the scene completes
          flipped < totalPages - 1 && !document.hidden;
-}
-function positionFlipHint() {
-  if (!flipScaleEl) return;
-  const r = flipScaleEl.getBoundingClientRect();            // the book's on-screen rect
-  // Size the hand relative to the BOOK (not the viewport) so it always suits
-  // the page, and sit it ON the bottom-right page corner — the exact corner
-  // the ghost peel lifts.
-  const hw = Math.max(40, Math.round(r.width * 0.085));
-  flipHint.style.width = hw + "px";              // img and SVG fallback both size by width
-  const w = flipHint.offsetWidth || hw, h = flipHint.offsetHeight || hw;
-  flipHint.style.left = Math.round(r.right - w - r.width * 0.035) + "px";
-  flipHint.style.top  = Math.round(r.bottom - h - r.height * 0.07) + "px";
-}
-function showFlipHint() {
-  if (!canShowHint()) return;
-  positionFlipHint();
-  flipHint.classList.add("show");
-}
-function hideFlipHint() {
-  flipHint.classList.remove("show");
-}
-/* Restart an element's CSS animation from 0% *now*. Used to re-phase the hand (and
-   an activity page's lift) at the top of every nudge beat so they stay one gesture
-   instead of slowly drifting apart on independent clocks. Both animations begin and
-   end on the same transform, so a restart at the beat boundary is invisible. */
-function restartCssAnim(el) {
-  if (!el) return;
-  el.style.animation = "none";
-  void el.offsetWidth;                         // reflow → next frame starts at 0%
-  el.style.animation = "";
 }
 
 /* ---- GHOST PAGE-FLIP -------------------------------------------------------
@@ -2366,27 +2309,20 @@ function peekFlip() {
   }, 1500));
 }
 
-/* Start the nudge and KEEP IT RUNNING until the reader taps: the hand swipes on the
-   book's right, the forward arrow blinks gold, and the ghost page-flip replays on a
-   cadence. Both the hand (.show) and the arrow (.blink) carry infinite CSS
-   animations, so they simply stay up — nothing hides them but resetIdleHint(). */
+/* Start the nudge and KEEP IT RUNNING until the reader taps: the corner page-peel
+   replays on a cadence and the forward arrow blinks gold. The arrow's .blink is an
+   infinite CSS animation so it simply stays up; only the peel needs re-triggering,
+   being a one-shot tween. Nothing clears either but resetIdleHint(). */
 function triggerHint() {
   if (!canShowHint()) { idleHintTimer = setTimeout(triggerHint, NUDGE_GAP_MS); return; }
-  showFlipHint();
-  // ONE GESTURE: the hand and the corner-peel are (re)started in the SAME tick at the
-  // top of every beat, so they always move together. The peel now runs on EVERY page,
-  // activity pages included — renderPeel clips their game overlay to the same fold, so
-  // no page is left with only the hand.
-  restartCssAnim(flipHint);
+  // The peel runs on EVERY page, activity pages included — renderPeel clips their game
+  // overlay to the same fold, so the game screen peels like any other sheet.
   peekFlip();
   if (cornerNext) cornerNext.classList.add("blink");
-  // The whole beat is re-triggered on PEEK_REPEAT_MS: the peel is a one-shot tween and
-  // the hand is re-phased against it, so both restart as a pair.
   clearTimeout(nudgeHideTimer);
   nudgeHideTimer = setTimeout(triggerHint, PEEK_REPEAT_MS);
 }
 function resetIdleHint() {
-  hideFlipHint();
   cancelPeek();
   if (cornerNext) cornerNext.classList.remove("blink");
   clearTimeout(idleHintTimer);
