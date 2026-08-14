@@ -625,6 +625,10 @@ let ready  = false;      // has the cover FINISHED opening? (flips allowed only 
 let flipped = 0;         // how many leaves are currently turned to the left
 let animating = false;   // guard so a new turn can't start mid-flip
 const FLIP_MS = 1150;    // keep in sync with --flip-ms in styles.css
+const DIALOGUE_LEAD_MS = 150;  // beat between the page LANDING and its dialogue starting.
+                               // Everything on an arriving page now waits for the turn to
+                               // finish, so this is measured from the landing, not from
+                               // the start of the flip.
 const COVER_OPEN_MS = 6000;  // keep in sync with the coverOpen animation in styles.css
 const CLOSE_SETTLE_MS = 560;  // keep in sync with the bookSettle animation in styles.css
 const COVER_CLOSE_MS  = 2000; // Home/Replay: cover swings shut (reverse open); sync with coverClose in styles.css
@@ -1412,8 +1416,18 @@ function refreshMedia() {
   // Start (or schedule) the current page's video. (A video INSIDE a .page-scene
   // belongs to the scene player — playScenes starts it when its scene lands.)
   const cur = leaves[idx];
+  /* NOTHING on the arriving page starts while the sheet is still turning — not the
+     clip, not the scene sequence, not the speech bubble. All three used to start at
+     flip START ("so it plays instantly"), so the voice-over ran underneath the
+     page-turn sound and the opening seconds of the scene played out while the page was
+     still side-on and unreadable. Every turn path — arrow, keyboard and drag-release,
+     GSAP and CSS-fallback alike — calls refreshMedia() a SECOND time once the turn
+     settles, with `animating` false; that pass is what starts them. Pausing and
+     rewinding the arriving clip (above) still happens immediately, so the page turns
+     showing its own first frame. */
+  const landed = !animating;
   const v = cur && !(pages[idx] && pages[idx].scenes) && cur.querySelector("video.page-media");
-  if (v) {
+  if (v && landed) {
     const delayMs = (pages[idx] && pages[idx].delay) ? pages[idx].delay : 0;
     if (delayMs > 0) {
       // Already playing this page, or already counting down for it → leave it alone
@@ -1449,26 +1463,26 @@ function refreshMedia() {
   // Start this page's dialogue: the scene sequence, or the single bubble —
   // Pop + Typewriter, timed so it lands as the page finishes turning.
   // (Scenes only run while the book is OPEN — never behind a closing cover.)
-  if (cur && pages[idx] && pages[idx].scenes) {
+  if (landed && cur && pages[idx] && pages[idx].scenes) {
     if (opened) {
-      playScenes(idx, animating ? 700 : 150);
+      playScenes(idx, DIALOGUE_LEAD_MS);
       // Returned to a page whose sequence already played out before its
       // reset kicked in (quick back-and-forth): it's still "done".
       if (scenePlayPage === idx && sceneSeqDone === idx) dialogueDone(idx);
     }
-  } else {
+  } else if (landed) {
     const bub = cur && cur.querySelector(".bubble");
     if (bub && !bub.dataset.revealed && !bub.dataset.sched) {
       bub.dataset.sched = "1";
       bub._revealTimer = dlgWait(function () {
         delete bub.dataset.sched;
         if (flipped === idx) revealBubbleNow(bub);
-      }, animating ? 700 : 150);
+      }, DIALOGUE_LEAD_MS);
       // …and once the bubble has popped + typed out, the nudge may arm.
       const bt = bub.querySelector(".bubble-text");
       const btFull = (bt && (bt.dataset.full || bt.textContent)) || "";
       dlgWait(function () { dialogueDone(idx); },
-              (animating ? 700 : 150) + TYPE_LAG_MS +
+              DIALOGUE_LEAD_MS + TYPE_LAG_MS +
               btFull.length * (+bub.dataset.typeSpeed || TYPE_MS) + 600);
     } else if (bub && bub.dataset.revealed && !bub._typeTimer && !bub._typeStartTimer) {
       dialogueDone(idx);                       // already popped + typed (quick return)
@@ -1515,9 +1529,12 @@ function turnLeaf(leaf) {                 // shared flip visuals + timing
       refreshMedia();                    // re-assert once settled (idempotent safety net)
     }, FLIP_MS + 40);
   }
-  refreshMedia();                        // START now → the target video plays INSTANTLY
-                                          // (as the page is revealed, not after the flip)
-  playFlip();
+  refreshMedia();                        // pause + rewind the arriving clip, reset the page
+                                          // it is LEAVING. The arriving page's video and
+                                          // dialogue deliberately do NOT start here — the
+                                          // done/settle callback above re-runs this and
+                                          // starts them once the sheet has landed.
+  playFlip();                            // …and the page-turn sound rides the turn itself
   updateProgress();
 }
 function goNext() {
@@ -1863,7 +1880,8 @@ if (replayBtn) replayBtn.addEventListener("click", function (e) { e.stopPropagat
       animating = true;
       if (complete) { playFlip(); flipped += (D === 1) ? 1 : -1; }
       renderLeaves();                                   // final classes now (inline overrides)
-      refreshMedia();                                   // START the target video INSTANTLY
+      refreshMedia();                                   // reset only — the clip and dialogue
+                                                        // start on the settle pass below
       L.style.zIndex = 300;                             // keep the peeling sheet on top
       const target = endFlipped ? { x: -PW, y: PH } : { x: PW, y: PH };
       const proxy = { x: P0.x, y: P0.y };
@@ -1903,7 +1921,8 @@ if (replayBtn) replayBtn.addEventListener("click", function (e) { e.stopPropagat
     void L.offsetWidth;                                   // reflow so it animates FROM the dragged angle
     L.classList.add("flipping");                          // curl shading during the snap
     renderLeaves();                                       // apply .flipped + z-index immediately
-    refreshMedia();                                       // START the target video INSTANTLY
+    refreshMedia();                                       // reset only — the clip and dialogue
+                                                          // start on the settle pass below
     L.style.transform = endFlipped ? "rotateY(-180deg)" : "rotateY(0deg)";
     updateProgress();
 
